@@ -73,11 +73,11 @@ void private run(){
 		break;
 
 		case ERROR:
-			cout << "Mode Error!" << endl;
+			cout << "ERROR: mode (run) " << endl;
 		break;
 		
 		default:
-			cout << "No mode operating" << endl;
+			cout << "No mode" << endl;
 	}
 
 }
@@ -94,7 +94,7 @@ void followCar(){
 //2. Avoiding objects. The car in front have to tell the car in the back?
 }
 
-void avoid(){ 					<<< HARD CODED: FIX!!
+void avoid(){ 					<<< HARD CODED: FIX!! not good, use overtake?
 	interface.setSpeed(SLOW_SPEED);
 	
 	interface.setAngle(-0.5);
@@ -133,8 +133,12 @@ void avoid(){ 					<<< HARD CODED: FIX!!
 }
 
 void crossing(){
-	//IF OTHER CAR IS IN CROSSING
+	if( OTHER CAR IS IN CROSSING){
 		COORDINATE
+		.
+		.
+		.
+	}
 	else
 		mode = JUST_DRIVE;
 	
