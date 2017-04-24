@@ -1,36 +1,44 @@
 
 
-const int trigPin1 = 5;
-const int echoPin1 = 6;
-const int trigPin2 = 8;
-const int echoPin2 = 9;
+const int leftTrigPin = 5;
+const int leftEchoPin = 6;
+const int rightTrigPin = 8;
+const int rightEchoPin = 9;
+const int aSize = 5;
 
+int frontLeft;
+int frontRight;
 
-void setup() 
-{
+void setup() {
+  
   Serial.begin(9600);
-  pinMode(trigPin1, OUTPUT);
-  pinMode(echoPin1, INPUT);
-  pinMode(trigPin2, OUTPUT);
-  pinMode(echoPin2, INPUT);
+  pinMode(leftTrigPin, OUTPUT);
+  pinMode(leftEchoPin, INPUT);
+  pinMode(rightTrigPin, OUTPUT);
+  pinMode(rightEchoPin, INPUT);
 
 }
 
 void loop() {
 
-  int cm1 = measure(trigPin1, echoPin1);
-  int cm2 = measure(trigPin2, echoPin2);
+  int frontLeftArray[aSize];
+  int frontRightArray[aSize];
 
-  if(cm1 > 0 && cm2 > 0){
-  Serial.print(cm1);
-  Serial.print(" ; ");
-  Serial.println(cm2);
-  delay(100);
+  for(int i=0; i<aSize; i++){
+    
+    frontLeftArray[i]=measure(leftTrigPin,leftEchoPin);
+    frontRightArray[i]=measure(rightTrigPin,rightEchoPin);
   }
+  frontLeft = sortArray(frontLeftArray);
+  frontRight = sortArray(frontRightArray);
+
+  Serial.print(frontLeft); 
+  Serial.print(" ; ");
+  Serial.println(frontRight);
 }
 
-int measure(int trigPin, int echoPin)
-{
+int measure(int trigPin, int echoPin){
+  
   int duration, cm;
 
   // The sensor is triggered by a HIGH pulse of 10 or more microseconds.
@@ -53,10 +61,26 @@ int measure(int trigPin, int echoPin)
   return cm;
 }
 
-int microsecondsToCentimeters(int microseconds)
-{
+int microsecondsToCentimeters(int microseconds){
+  
   // The speed of sound is 340 m/s or 29 microseconds per centimeter.
   // The ping travels out and back, so to find the distance of the
   // object we take half of the distance travelled.
   return microseconds / 29 / 2;
 }
+
+//Sorts and returns the median value of the array acting as an median filter.
+int sortArray (int a[]){
+  
+  int b[aSize];
+  int temp;
+  
+  for(int i=0; i<aSize-1; i++){
+    for(int j=aSize; j<aSize; j++){
+      if(a[i]<b[j])
+        temp = a[i]; a[i]=b[j]; b[j]=temp;
+    }
+  }
+  return a[2];
+}
+
