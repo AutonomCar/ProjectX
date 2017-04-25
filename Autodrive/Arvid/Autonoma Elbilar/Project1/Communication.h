@@ -29,16 +29,17 @@ void update(Sensors a) { //update the values of Sensors
 	adress += str[2] * 1;
 
 	switch (adress) {
+
 		case 111:
-			
-			break; //optional
-		case constant - expression:
-			statement(s);
+			//update the sensor value
 			break; //optional
 
-				   // you can have any number of case statements.
+		case 112:
+			//update sensor
+			break; //optional
+
 		default: //Optional
-			statement(s);
+			//retturn fail?
 	}
 }
 
