@@ -1,0 +1,23 @@
+Sensorer:
+
+Vid request fås senaste data.
+
+110 Ultraljud	int cm
+120 Underrredes sensor (inte IR?!) boolean
+130 wheel movement (rotations encoder, antal pulser) int antal
+(140) nuvarande hastighet, int m/s
+
+
+Ultraljud 1,2,3,4
+	111,112,113,114
+
+Underredes sensor 1,2
+	121,122
+
+Wheel	1,2
+	131,132
+
+Speed	1
+	141
+
+
