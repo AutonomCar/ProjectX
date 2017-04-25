@@ -1,2 +1,6 @@
 # Google App Engine generated folder
 appengine-generated/
+*.ipch
+*.vcxproj
+Autodrive/Arvid/Autonoma Elbilar/Project1/Project1.vcxproj.filters
+*.sln
