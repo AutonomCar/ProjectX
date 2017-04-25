@@ -1,0 +1,15 @@
+Comment,Description,Designator,Footprint,LibRef,Quantity
+
+"solderpads","","","solderpads","solderpads","1"
+"Cap","Capacitor","C1, C2, C3, C4, C5, C6, C7, C8, C9, C10","0603 cap","Cap","10"
+"Header 4","Header, 4-Pin","P1","HDR1X4","Header 4","1"
+"Header 2X2","Header, 2-Pin, Dual row","P2","HDR2X2","Header 2X2","1"
+"MC24366","TERMINAL BLOCK EUROSTYLE, 2POS, 26-12AWG","P3, P5","2pin screw terminal","MC24366","2"
+"Header 6","Header, 6-Pin","P4","HDR1X6","Header 6","1"
+"Header 10","Header, 10-Pin","P6","HDR1X10","Header 10","1"
+"16mhz","16MHz ±30ppm Crystal 18pF 30 Ohm -20°C ~ 70°C  Through Hole HC49/US","Q1, Q2","DIP HC-49S","9B-16.000MAAJ-B","2"
+"Res1","Resistor","R1","AXIAL-0.3","Res1","1"
+"TC1262-3.3VDB","","U1","SOT230P700X180-4N","TC1262-3.3VDB","1"
+"ATMEGA328P-PU","ATMEL         ATMEGA328P-PU            8 Bit Microcontroller, Low Power High Performance, ATmega, 20 MHz, 32 KB, 2 KB, 28 Pins, DIP","U2","DIP28","ATMEGA328P-PU","1"
+"MCP2562-E/SN","MICROCHIP         MCP2562-E/SN            CAN Bus, Transceiver, CAN, LIN, 1, 1, 4.5 V, 5.5 V, SOIC","U3","SOIC8","MCP2562-E/SN","1"
+"MCP2515-I/SO","MICROCHIP         MCP2515-I/SO             CAN Bus, Controller, SPI, 3, 2, 2.7 V, 5.5 V, SOIC","U4","SOIC18","MCP2515-I/SO","1"
