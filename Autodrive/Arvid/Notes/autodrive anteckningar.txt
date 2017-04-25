@@ -1,0 +1,22 @@
+Anteckningar om Autodrive
+Arvid Englund
+
+Command är ett struct object som innehåller aktuella förändringar/kommandon för bilen.
+Command innehåller funktioner för att ändra/uppdatera hastighet och riktning.
+
+I autodrive nollas först Command för att sedan ändras beroende på hur bilen ska framföras
+vilket i sin tur beror på vad bilens nuvarande läge(status) är,
+vilket i sin tur beror på vilka sensordata bilen får in.
+Detta är i en konstant while loop.
+
+overtaking run() laddar command och kollar bilens sensorer, om inget hinder är upptäckt så
+fortsätter det som vanligt.
+Om ett hinder har upptäckts så ändras status till overtaking och programmet går in i
+en loop som konstant uppdaterar command och utför en förprogrammerad undanmanöver och undviker hindret.
+
+
+
+
+
+
+
