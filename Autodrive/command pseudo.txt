@@ -1,0 +1,34 @@
+
+#include <iostream>
+
+class Command{
+
+	public:
+		private bool newSpeed;
+		private bool newDirection;
+		private int speed;
+		private double direction;
+}
+
+Command::Command(void){
+	cout << "command created" << endl;
+}
+
+void Command:setSpeed(int spd){
+	speed = spd;
+	newSpeed = true;
+}
+
+void Command:setSpeed(int dir){
+	direction = dir;
+	newDirection = true;
+}
+
+int Command::getSpeed(){
+	return speed;
+}
+
+int Command::getDirection(){
+	return direction;
+}
+
