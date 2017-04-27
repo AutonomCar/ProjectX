@@ -1,4 +1,11 @@
-// Position class
+/*
+* Arvid Englund
+* 2017
+*
+* Positioning classes and functions
+* "Autonoma Elbilar"
+*/
+
 
 class Pos {
 public:
@@ -8,6 +15,19 @@ public:
 	bool available = true;
 };
 
+class Intersection { // first try, might be better?
+public:
+	bool n;
+	bool s;
+	bool w;
+	bool e;
+
+	Intersection * north;
+	Intersection * south;
+	Intersection * west;
+	Intersection * east;
+
+};
 
 
 
