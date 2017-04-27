@@ -1,23 +1,28 @@
 Autodrive pseudo code, decision making 2017-05-18
 
+#include "Communication"; //Byt ut interface
+#include "Navigation";
+
 
 private int mode;
-final int FOLLOW_ROAD = 1;
-final int AVOID = 2;
-final int FOLLOW_CAR = 3;
-final int CROSSING = 4;
-final int JUST_DRIVE = 5;
-final int ERROR = 6;
+final int FOLLOW_ROAD = 1; 	// Follow the road using ImageProcessing
+final int AVOID = 2;		// Pre coded route to avoid object op road
+final int FOLLOW_CAR = 3;	// Follow car at set distance.
+final int CROSSING = 4;		// Manage an intersection
+final int JUST_DRIVE = 5;	// Drive forward, turn when ecountering obstacles (roomba style)
+final int ERROR = 6;		// Something is wrong. Stop Car Immediatly.
 
 final int FAST_SPEED = 255;
 final int NORMAL_SPEED = 200;
 final int SLOW_SPEED = 100;
+final int STOP = 0;
 
-public Interface interface;
+public int next;
+public int last;
+
 
 main(){
 	while(1){
-		interface = new Interface();
 		updateMode();
 		run();		
 	}
@@ -28,7 +33,7 @@ main(){
 void updateMode(){
 	
 	//Object within 100cm in front of car
-	if( (interface.getSonarFront()<100) && (mode!=FOLLOW_CAR) )
+	if( (interface.getSonarFront()<100) && (mode!=FOLLOW_CAR) && (mode == FOLLOWING_ROAD) ) // Stop if object appears between the cars in FOLLOWING_CAR
 		mode = AVOID;
 	
 	//Paralell line under car. When not in AVOID procedure.
@@ -69,7 +74,7 @@ void private run(){
 		break;
 		
 		case JUST_DRIVE:
-			interface.setSpeed(NORMAL_SPEED);
+			justDrive();
 		break;
 
 		case ERROR:
@@ -143,5 +148,27 @@ void crossing(){
 		mode = JUST_DRIVE;
 	
 }
+
+
+void justDrive(){
+	setSpeed(SLOW_SPEED);
+	if(getSonarFront()<100){
+		setAngle(1);
+	}
+	else if(!getSonar()<100){
+	setAngle(0);
+	}
+	
+	if(interface.getSonarFront()<50){
+		interface.setSpeed(STOP);
+		setAngle(-1);
+		setSpeed(-100);
+		wait(20);
+		setSpeed(0);
+		setAngle(0);		
+	}
+	
+}
+
 
 
