@@ -22,6 +22,11 @@ class Sensors {
 };
 
 
+void sendCAN(){
+
+};
+
+
 void requestUpdate(Sensors a) { //Needs to request an update first (it takes some time to go through)
 	//TODO
 }
