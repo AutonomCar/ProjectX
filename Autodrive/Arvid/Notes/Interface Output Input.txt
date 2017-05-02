@@ -1,0 +1,44 @@
+Interface Pseudo code 2017-05-18
+
+//Output - get/set
+	boolean newAngle;
+	boolean newSpeed;
+	int speed; // 0-100
+	double angle; // +1/-1
+
+void setSpeed(int s){
+newSpeed = true;
+speed = s;
+}
+
+void setAngle(int a){
+newAngle = true;
+angle = a;
+}
+
+
+//Input - get/set
+	boolean irFrontLeft;
+	boolean irFrontRight;
+	int sonarFront;
+	int sonarSide;
+
+
+boolean get irFrontLeft(){
+return irFrontLeft;
+}
+
+
+public void Update(){
+	if(newAngle)
+		CAN.setAngle(angle)
+		newAngle = false;
+	if(newSpeed)
+		CAN.setSpeed(speed)
+		newSpeed = false;
+	
+	irFrontLeft = CAN.getIrFrontLeft;
+	irFrontRight = CAN.getIrFrontRight;
+	sonarFront = CAN.getSonarFront;
+	sonarSide = CAN.getSonarSide;
+}

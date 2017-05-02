@@ -1,0 +1,37 @@
+Communications Via CAN-bus on Linux
+
+Initializing CAN:
+system("sudo ip link set can0 up type can bitrate 500000") // a small mistake somewhere
+
+Sending on CAN:
+system("cansend can0 140#0164") // send to motor(140) and set forward(01) speed(100(0x64))
+
+void driveFwd(int a) {
+
+	string str = "gnome-terminal cansend can0 140#01" + int_to_hex(a); //140#01 for forward, 00 for back, 02 for stop.
+	cout << str.size() << endl;
+
+	cout << str << endl;
+
+	char cmd[43];
+
+	strcpy(cmd, str.c_str());
+
+
+	system(cmd);// Cmd linux command setSpeed 100
+
+}
+
+
+
+
+template< typename T >
+std::string int_to_hex(T i)
+{
+	std::stringstream stream;
+	stream << ""
+//	<< std::setfill('0') << std::setw(sizeof(T) * 2)
+	<< std::hex << i;
+	return stream.str();
+}
+

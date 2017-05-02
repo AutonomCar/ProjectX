@@ -1,0 +1,41 @@
+
+MapObject{
+	public:
+		//Available roads
+		bool n;
+		bool s;
+		bool e;
+		bool w;
+		
+		//Roadsign
+		MapObject * north;
+		MapObject * south;
+		MapObject * west;
+		MapObject * east;
+			
+}
+
+LastCrossing{
+	public:
+		MapObject * last;
+		char dir;
+}
+
+
+//EX:
+
+MapObject a = new MapObject;
+MapObject b = new MapObject;
+MapObject c = new MapObject;
+
+a.n = true;
+a.north = b;
+b.north = a;
+
+LastCrossing lc = new LastCrossing;
+
+
+LÖS:
+if(lc.dir == 'n' && right == true)
+	dir = 'w'
+	
