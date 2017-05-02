@@ -14,7 +14,7 @@ MCP_CAN CAN0(10);                               // Set CS to pin 10
 #include <MPU9250.h>
 #include <quaternionFilters.h>
 
-#define AHRS false     // Set to false for basic data read
+//#define AHRS false     // Set to false for basic data read
 #define SerialDebug true  // Set to true to get Serial output for debugging
 
 const int intPinI2C = 12; //Can be changed to 2 and 3 as external interrupts
@@ -130,6 +130,12 @@ void setup() {
 }
 
 void loop() {
+
+  
+  long duration, cm;
+  int backSideArray[aSize];
+  int frontSideArray[aSize];
+
   
   // If intPin goes high, all data registers have new data
   // On interrupt, check if data ready interrupt
@@ -137,8 +143,16 @@ void loop() {
     updateData();
   }
 
+  for(int i=0; i<aSize; i++){
+    
+    backSideArray[i]=measure(backSideTrigPin,backSideEchoPin);
+    frontSideArray[i]=measure(frontSideTrigPin,frontSideEchoPin);
+  }
+  backSide = sortArray(backSideArray);
+  frontSide = sortArray(frontSideArray);
+
 }
-//*****************TO DO, SET WHAT DATATYPE TO SEND********************
+//*****************TO DO, SET WHAT DATATYPE TO SEND***************
 void sendCan(){
   
   byte data[8] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
@@ -150,16 +164,13 @@ void sendCan(){
   } else {
     Serial.println("Error Sending Message...");
   }
-  delay(100);   // send data per 100ms
   
 }
 
 void readCan (){
-
-  byte data[8] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
   
-  if(!digitalRead(CAN0_INT))                         // If CAN0_INT pin is low, read receive buffer
-  {
+  if(!digitalRead(CAN0_INT)) {                 // If CAN0_INT pin is low, read receive buffer
+  
     CAN0.readMsgBuf(&rxId, &len, rxBuf);      // Read data: len = data length, buf = data byte(s)
     
     if((rxId & 0x80000000) == 0x80000000)     // Determine if ID is standard (11 bits) or extended (29 bits)
@@ -204,6 +215,13 @@ void updateData (){
     myIMU.gy = (float)myIMU.gyroCount[1] * myIMU.gRes;
     myIMU.gz = (float)myIMU.gyroCount[2] * myIMU.gRes;
 
+    /*
+     * 
+     * myIMU.tempCount = myIMU.readTempData();  // Read the adc values
+       myIMU.temperature = ((float) myIMU.tempCount) / 333.87 + 21.0;  // Temperature in degrees Centigrade
+     * 
+     */
+
     //**************MAY HAVE TO MOVE****************
     // Must be called before updating quaternions!
     myIMU.updateTime();
@@ -244,6 +262,9 @@ int measure(int trigPin, int echoPin){
 
   // convert the time into a distance
   cm = microsecondsToCentimeters(duration);
+  if(cm<0){
+    cm = measure(trigPin, echoPin);
+  }
   return cm;
 
 }
@@ -253,7 +274,7 @@ int microsecondsToCentimeters(int microseconds){
   // The speed of sound is 340 m/s or 29 microseconds per centimeter.
   // The ping travels out and back, so to find the distance of the
   // object we take half of the distance travelled.
-  return microseconds / 29 / 2;
+  return (microseconds / 29 / 2) +0.6*myIMU.temperature;
 }
 /*******************TO DO*********************
 void intTobyte(int value){
