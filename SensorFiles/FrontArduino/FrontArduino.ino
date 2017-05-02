@@ -9,7 +9,7 @@ char msgString[128];                        // Array to store serial string
 
 #define CAN0_INT 2                              // Set INT to pin 2
 MCP_CAN CAN0(10);                               // Set CS to pin 10
-//****************************************************************
+//*******************************************************************
 //************************INITIATE MPU9250***************************
 #include <MPU9250.h>
 #include <quaternionFilters.h>
@@ -21,8 +21,20 @@ const int intPinI2C = 12; //Can be changed to 2 and 3 as external interrupts
 const int intPinCan = 2;
 
 MPU9250 myIMU;
-//***************************************************************
+//****************************************************************
+//*************************INITIATE RANGE SENSOR******************
+const int backSideTrigPin = 5;
+const int backSideEchoPin = 6;
+const int frontSideTrigPin = 8;
+const int frontSideEchoPin = 9;
+const int aSize = 5;
+
+int backSide;
+int frontSide;
+//****************************************************************
+
 void setup() {
+  
 //************************SETUP MPU9259************************
   Wire.begin();
   // TWBR = 12;  // 400 kbit/sec I2C speed
@@ -35,7 +47,7 @@ void setup() {
   pinMode(intPinCan, INPUT);
   digitalWrite(intPinCan, LOW);
   
-  //***********TO DO FIX INTTERRUPT*******************
+  //***********TO DO, FIX INTTERRUPT*******************
   //attachInterrupt(0, readCan, CHANGE);
 
 
@@ -108,7 +120,13 @@ void setup() {
   
   Serial.println("MCP2515 Library Receive Example...");
 //***************************************************************
-  
+//**************************SETUP RANGE SENSOR*******************
+  pinMode(backSideTrigPin, OUTPUT);
+  pinMode(backSideEchoPin, INPUT);
+  pinMode(frontSideTrigPin, OUTPUT);
+  pinMode(frontSideEchoPin, INPUT);
+
+//***************************************************************
 }
 
 void loop() {
@@ -117,15 +135,14 @@ void loop() {
   // On interrupt, check if data ready interrupt
   if (myIMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {
     updateData();
-  } else {
-    
   }
 
 }
-
+//*****************TO DO, SET WHAT DATATYPE TO SEND********************
 void sendCan(){
   
   byte data[8] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
+
   // send data:  ID = 0x100, Standard CAN Frame, Data length = 8 bytes, 'data' = array of data bytes to send
   byte sndStat = CAN0.sendMsgBuf(0x100, 0, 8, data);
   if(sndStat == CAN_OK){
@@ -206,3 +223,59 @@ void updateData (){
                            myIMU.mx, myIMU.mz, myIMU.deltat);
 }
 
+int measure(int trigPin, int echoPin){
+  
+  int duration, cm;
+
+  // The sensor is triggered by a HIGH pulse of 10 or more microseconds.
+  // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
+  pinMode(trigPin, OUTPUT);
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Read the signal from the sensor: a HIGH pulse whose
+  // duration is the time (in microseconds) from the sending
+  // of the ping to the reception of its echo off of an object.
+  pinMode(echoPin, INPUT);
+  duration = pulseIn(echoPin, HIGH);
+
+  // convert the time into a distance
+  cm = microsecondsToCentimeters(duration);
+  return cm;
+
+}
+
+int microsecondsToCentimeters(int microseconds){
+  
+  // The speed of sound is 340 m/s or 29 microseconds per centimeter.
+  // The ping travels out and back, so to find the distance of the
+  // object we take half of the distance travelled.
+  return microseconds / 29 / 2;
+}
+/*******************TO DO*********************
+void intTobyte(int value){
+
+  for(int i=0; i<8; i++){
+    data[i] = value%16 , HEX;
+    value = value/16;
+  Serial.println(data[i]);
+  }
+}*/
+
+//Sorts and returns the median value of the array acting as an median filter.
+int sortArray (int a[]){
+  
+  int b[aSize];
+  int temp;
+  
+  for(int i=0; i<aSize-1; i++){
+    for(int j=aSize; j<aSize; j++){
+      if(a[i]<b[j])
+        temp = a[i]; a[i]=b[j]; b[j]=temp;
+    }
+  }
+  return a[2];
+}

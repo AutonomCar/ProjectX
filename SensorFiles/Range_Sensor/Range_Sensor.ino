@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /* HC-SR04 Sensor
    https://www.dealextreme.com/p/hc-sr04-ultrasonic-sensor-distance-measuring-module-133696
   
@@ -27,7 +26,6 @@ MCP_CAN CAN0(10);     // Set CS to pin
 
    This example code is in the public domain.
  */
-=======
 const int backSideTrigPin = 5;
 const int backSideEchoPin = 6;
 const int frontSideTrigPin = 8;
@@ -65,10 +63,7 @@ void setup() {
   
   Serial.println("MCP2515 Library Receive Example...");
 }
->>>>>>> master
 
-
-<<<<<<< HEAD
 const int trigPin = 4;
 const int echoPin = 5;
 
@@ -82,7 +77,6 @@ void loop()
   // establish variables for duration of the ping, 
   // and the distance result in inches and centimeters:
   long duration, inches, cm;
-=======
   int backSideArray[aSize];
   int frontSideArray[aSize];
 
@@ -144,13 +138,10 @@ long microsecondsToInches(long microseconds)
   return microseconds / 74 / 2;
 }
 
-<<<<<<< HEAD
 long microsecondsToCentimeters(long microseconds)
 {
-=======
 int microsecondsToCentimeters(int microseconds){
   
->>>>>>> master
   // The speed of sound is 340 m/s or 29 microseconds per centimeter.
   // The ping travels out and back, so to find the distance of the
   // object we take half of the distance travelled.
