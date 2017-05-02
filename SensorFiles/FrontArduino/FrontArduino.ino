@@ -274,7 +274,7 @@ int microsecondsToCentimeters(int microseconds){
   // The speed of sound is 340 m/s or 29 microseconds per centimeter.
   // The ping travels out and back, so to find the distance of the
   // object we take half of the distance travelled.
-  return (microseconds / 29 / 2) +0.6*myIMU.temperature;
+  return (microseconds / 29 / 2);
 }
 /*******************TO DO*********************
 void intTobyte(int value){
