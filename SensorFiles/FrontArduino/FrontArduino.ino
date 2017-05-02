@@ -128,15 +128,12 @@ void setup() {
 
 //***************************************************************
 }
-
 void loop() {
 
-  
   long duration, cm;
   int backSideArray[aSize];
   int frontSideArray[aSize];
 
-  
   // If intPin goes high, all data registers have new data
   // On interrupt, check if data ready interrupt
   if (myIMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {
@@ -166,7 +163,7 @@ void sendCan(){
   }
   
 }
-
+//***************** TO DO, MAYBE MOVE FUNCTION AND CALL sendCan*****************
 void readCan (){
   
   if(!digitalRead(CAN0_INT)) {                 // If CAN0_INT pin is low, read receive buffer
@@ -269,8 +266,7 @@ int measure(int trigPin, int echoPin){
 
 }
 
-int microsecondsToCentimeters(int microseconds){
-  
+int microsecondsToCentimeters(int microseconds){  
   // The speed of sound is 340 m/s or 29 microseconds per centimeter.
   // The ping travels out and back, so to find the distance of the
   // object we take half of the distance travelled.
