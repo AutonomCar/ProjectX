@@ -6,6 +6,7 @@ long unsigned int rxId;
 unsigned char len = 0;
 unsigned char rxBuf[8];
 char msgString[128];                        // Array to store serial string
+boolean intFlag = false;
 
 #define CAN0_INT 2                              // Set INT to pin 2
 MCP_CAN CAN0(10);                               // Set CS to pin 10
@@ -23,14 +24,14 @@ const int intPinCan = 2;
 MPU9250 myIMU;
 //****************************************************************
 //*************************INITIATE RANGE SENSOR******************
-const int backSideTrigPin = 5;
-const int backSideEchoPin = 6;
-const int frontSideTrigPin = 8;
-const int frontSideEchoPin = 9;
+const int frontTrigPin = 5;
+const int frontEchoPin = 6;
+const int frontRightTrigPin = 8;
+const int frontRightEchoPin = 9;
 const int aSize = 5;
 
-int backSide;
-int frontSide;
+int front;
+int frontRight;
 //****************************************************************
 
 void setup() {
@@ -48,7 +49,7 @@ void setup() {
   digitalWrite(intPinCan, LOW);
   
   //***********TO DO, FIX INTTERRUPT*******************
-  //attachInterrupt(0, readCan, CHANGE);
+  //attachInterrupt(0, setFlag, CHANGE);
 
 
   // Read the WHO_AM_I register, this is a good test of communication
@@ -121,18 +122,18 @@ void setup() {
   Serial.println("MCP2515 Library Receive Example...");
 //***************************************************************
 //**************************SETUP RANGE SENSOR*******************
-  pinMode(backSideTrigPin, OUTPUT);
-  pinMode(backSideEchoPin, INPUT);
-  pinMode(frontSideTrigPin, OUTPUT);
-  pinMode(frontSideEchoPin, INPUT);
+  pinMode(frontTrigPin, OUTPUT);
+  pinMode(frontEchoPin, INPUT);
+  pinMode(frontRightTrigPin, OUTPUT);
+  pinMode(frontRightEchoPin, INPUT);
 
 //***************************************************************
 }
 void loop() {
 
   long duration, cm;
-  int backSideArray[aSize];
-  int frontSideArray[aSize];
+  int frontArray[aSize];
+  int frontRightArray[aSize];
 
   // If intPin goes high, all data registers have new data
   // On interrupt, check if data ready interrupt
@@ -140,15 +141,34 @@ void loop() {
     updateData();
   }
 
+  if(flagCan==true){
+    readCan();
+    /*
+     * if(canMessage==ultrasonicrigth){
+     *  sendCan(front);
+     *  }
+     *  else if(canMessage==ultrasonicfrontRight){
+     *    sendCan(frontRight);
+     *  }
+     *  else if(canMessage==gyroscope){
+     *    sendCan(gyroscope);
+     *  }
+     *  else if(canMessage==accelerometer){
+     *    sendCan(accelerometer);
+     *  }
+     */
+     intFlag=false;
+  }
+
   for(int i=0; i<aSize; i++){
     
-    backSideArray[i]=measure(backSideTrigPin,backSideEchoPin);
-    frontSideArray[i]=measure(frontSideTrigPin,frontSideEchoPin);
+    frontArray[i]=measure(frontTrigPin,frontEchoPin);
+    frontRightArray[i]=measure(frontRightTrigPin,frontRightEchoPin);
   }
-  backSide = sortArray(backSideArray);
-  frontSide = sortArray(frontSideArray);
-
+  front = sortArray(frontArray);
+  frontRight = sortArray(frontRightArray);
 }
+//*****************CAN FUNCTIONS*********************************
 //*****************TO DO, SET WHAT DATATYPE TO SEND***************
 void sendCan(){
   
@@ -190,7 +210,11 @@ void readCan (){
     Serial.println();
   }
 }
-
+void flagCan(){
+  intFlag = true;
+}
+//***************************************************************
+//****************************MPU 9250 FUNCTIONS*****************
 void updateData (){
 
   
@@ -237,7 +261,8 @@ void updateData (){
                            myIMU.gy * DEG_TO_RAD, myIMU.gz * DEG_TO_RAD, myIMU.my,
                            myIMU.mx, myIMU.mz, myIMU.deltat);
 }
-
+//***************************************************************
+//***************************ULTRASONIC FUNCTIONS****************
 int measure(int trigPin, int echoPin){
   
   int duration, cm;
@@ -296,3 +321,5 @@ int sortArray (int a[]){
   }
   return a[2];
 }
+//***************************************************************
+
