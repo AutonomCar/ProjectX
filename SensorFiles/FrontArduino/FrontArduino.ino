@@ -36,7 +36,7 @@ int frontRight;
 
 void setup() {
   
-//************************SETUP MPU9259************************
+//************************SETUP MPU9250************************
   Wire.begin();
   // TWBR = 12;  // 400 kbit/sec I2C speed
   Serial.begin(115200);
@@ -120,6 +120,8 @@ void setup() {
   pinMode(CAN0_INT, INPUT);                            // Configuring pin for /INT input
   
   Serial.println("MCP2515 Library Receive Example...");
+  //***********TO DO, FIX INTTERRUPT*******************
+  //attachInterrupt(0, setFlag, CHANGE);
 //***************************************************************
 //**************************SETUP RANGE SENSOR*******************
   pinMode(frontTrigPin, OUTPUT);
@@ -135,6 +137,7 @@ void loop() {
   int frontArray[aSize];
   int frontRightArray[aSize];
 
+  //**********************READ MPU 9250 DATA*********************
   // If intPin goes high, all data registers have new data
   // On interrupt, check if data ready interrupt
   if (myIMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {
