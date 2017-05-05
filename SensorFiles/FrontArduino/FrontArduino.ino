@@ -5,7 +5,7 @@
 long unsigned int rxId;
 unsigned char len = 0;
 unsigned char rxBuf[8];
-char msgString[128];                        // Array to store serial string
+char msgString[8];                        // Array to store serial string
 boolean intFlag = false;
 
 #define CAN0_INT 2                              // Set INT to pin 2
@@ -15,15 +15,15 @@ MCP_CAN CAN0(10);                               // Set CS to pin 10
 #include <MPU9250.h>
 #include <quaternionFilters.h>
 
-//#define AHRS false     // Set to false for basic data read
-#define SerialDebug true  // Set to true to get Serial output for debugging
+//#define AHRS false      // Set to false for basic data read
+//#define SerialDebug true  // Set to true to get Serial output for debugging
 
 const int intPinI2C = 12; //Can be changed to 2 and 3 as external interrupts
 const int intPinCan = 2;
 
 MPU9250 myIMU;
-//****************************************************************
-//*************************INITIATE RANGE SENSOR******************
+//*******************************************************************
+//*************************INITIATE RANGE SENSOR*********************
 const int frontTrigPin = 5;
 const int frontEchoPin = 6;
 const int frontRightTrigPin = 8;
@@ -32,11 +32,14 @@ const int aSize = 5;
 
 int front;
 int frontRight;
-//****************************************************************
-
+//*******************************************************************
+//************************INITIATE IR SENSOR*************************
+const int leftIR=0;
+const int rightIR=1;
+//*******************************************************************
+//***************************SETUP***********************************
 void setup() {
-  
-//************************SETUP MPU9250************************
+//************************SETUP MPU9250******************************
   Wire.begin();
   // TWBR = 12;  // 400 kbit/sec I2C speed
   Serial.begin(115200);
@@ -49,7 +52,7 @@ void setup() {
   digitalWrite(intPinCan, LOW);
   
   //***********TO DO, FIX INTTERRUPT*******************
-  //attachInterrupt(0, setFlag, CHANGE);
+  attachInterrupt(0, flagCan, FALLING);
 
 
   // Read the WHO_AM_I register, this is a good test of communication
@@ -64,7 +67,7 @@ void setup() {
 
     // Start by performing self test and reporting values
     myIMU.MPU9250SelfTest(myIMU.selfTest);
-    Serial.print("x-axis self test: acceleration trim within : ");
+/*  Serial.print("x-axis self test: acceleration trim within : ");
     Serial.print(myIMU.selfTest[0], 1); Serial.println("% of factory value");
     Serial.print("y-axis self test: acceleration trim within : ");
     Serial.print(myIMU.selfTest[1], 1); Serial.println("% of factory value");
@@ -76,7 +79,7 @@ void setup() {
     Serial.print(myIMU.selfTest[4], 1); Serial.println("% of factory value");
     Serial.print("z-axis self test: gyration trim within : ");
     Serial.print(myIMU.selfTest[5], 1); Serial.println("% of factory value");
-
+*/
     // Calibrate gyro and accelerometers, load biases in bias registers
     myIMU.calibrateMPU9250(myIMU.gyroBias, myIMU.accelBias);
 
@@ -95,20 +98,20 @@ void setup() {
     myIMU.initAK8963(myIMU.factoryMagCalibration);
     // Initialize device for active mode read of magnetometer
     Serial.println("AK8963 initialized for active data mode....");
-    if (SerialDebug)
-    {
-      //  Serial.println("Calibration values: ");
-      Serial.print("X-Axis sensitivity adjustment value ");
-      Serial.println(myIMU.factoryMagCalibration[0], 2);
-      Serial.print("Y-Axis sensitivity adjustment value ");
-      Serial.println(myIMU.factoryMagCalibration[1], 2);
-      Serial.print("Z-Axis sensitivity adjustment value ");
-      Serial.println(myIMU.factoryMagCalibration[2], 2);
-    }
+//    if (SerialDebug)
+//    {
+//      //  Serial.println("Calibration values: ");
+//      Serial.print("X-Axis sensitivity adjustment value ");
+//      Serial.println(myIMU.factoryMagCalibration[0], 2);
+//      Serial.print("Y-Axis sensitivity adjustment value ");
+//      Serial.println(myIMU.factoryMagCalibration[1], 2);
+//      Serial.print("Z-Axis sensitivity adjustment value ");
+//      Serial.println(myIMU.factoryMagCalibration[2], 2);
+//    }
 
   }
-//***************************************************************
-//***************************SETUP CAN***************************
+//*******************************************************************
+//***************************SETUP CAN*******************************
   // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
   if(CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_16MHZ) == CAN_OK)
     Serial.println("MCP2515 Initialized Successfully!");
@@ -117,20 +120,25 @@ void setup() {
   
   CAN0.setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
 
-  pinMode(CAN0_INT, INPUT);                            // Configuring pin for /INT input
+  pinMode(CAN0_INT, INPUT);                     // Configuring pin for /INT input
   
   Serial.println("MCP2515 Library Receive Example...");
   //***********TO DO, FIX INTTERRUPT*******************
   //attachInterrupt(0, setFlag, CHANGE);
-//***************************************************************
-//**************************SETUP RANGE SENSOR*******************
+//*******************************************************************
+//**************************SETUP RANGE SENSOR***********************
   pinMode(frontTrigPin, OUTPUT);
   pinMode(frontEchoPin, INPUT);
   pinMode(frontRightTrigPin, OUTPUT);
   pinMode(frontRightEchoPin, INPUT);
 
-//***************************************************************
+//*******************************************************************
+//************************SETUP IR SENSOR****************************
+  pinMode(leftIR, INPUT);
+  pinMode(rightIR, INPUT);
+//*******************************************************************
 }
+//***************************MAIN************************************
 void loop() {
 
   long duration, cm;
@@ -148,10 +156,10 @@ void loop() {
     readCan();
     /*
      * if(canMessage==ultrasonicrigth){
-     *  sendCan(front);
+     *  sendCan(measure(frontTrigPin,frontEchoPin));
      *  }
      *  else if(canMessage==ultrasonicfrontRight){
-     *    sendCan(frontRight);
+     *    sendCan(measure(frontRightTrigPin,frontRightEchoPin));
      *  }
      *  else if(canMessage==gyroscope){
      *    sendCan(gyroscope);
@@ -159,20 +167,33 @@ void loop() {
      *  else if(canMessage==accelerometer){
      *    sendCan(accelerometer);
      *  }
+     *  else if(checkLine){
+     *    int left = analogRead(lineLeft);
+     *    int right = analogRead(lineRight);
+     *    
+     *    if(left>right && left>value)
+     *      sendCan(left);
+     *    if(right>left && right>value);
+     *      sendCan(right);
+     *    else if(left>value && right>value);
+     *      sendCan(crossing);
+     *  }
      */
      intFlag=false;
   }
 
-  for(int i=0; i<aSize; i++){
+  /*for(int i=0; i<aSize; i++){
     
     frontArray[i]=measure(frontTrigPin,frontEchoPin);
     frontRightArray[i]=measure(frontRightTrigPin,frontRightEchoPin);
   }
   front = sortArray(frontArray);
   frontRight = sortArray(frontRightArray);
+  */
 }
-//*****************CAN FUNCTIONS*********************************
-//*****************TO DO, SET WHAT DATATYPE TO SEND***************
+//*******************************************************************
+//*********************CAN FUNCTIONS*********************************
+//*****************TO DO, SET WHAT DATATYPE TO SEND********
 void sendCan(){
   
   byte data[8] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
@@ -186,7 +207,7 @@ void sendCan(){
   }
   
 }
-//***************** TO DO, MAYBE MOVE FUNCTION AND CALL sendCan*****************
+//***************** TO DO, MAYBE MOVE FUNCTION AND CALL sendCan()*****************
 void readCan (){
   
   if(!digitalRead(CAN0_INT)) {                 // If CAN0_INT pin is low, read receive buffer
@@ -216,8 +237,8 @@ void readCan (){
 void flagCan(){
   intFlag = true;
 }
-//***************************************************************
-//****************************MPU 9250 FUNCTIONS*****************
+//*******************************************************************
+//****************************MPU 9250 FUNCTIONS*********************
 void updateData (){
 
   
@@ -264,8 +285,8 @@ void updateData (){
                            myIMU.gy * DEG_TO_RAD, myIMU.gz * DEG_TO_RAD, myIMU.my,
                            myIMU.mx, myIMU.mz, myIMU.deltat);
 }
-//***************************************************************
-//***************************ULTRASONIC FUNCTIONS****************
+//*******************************************************************
+//***************************ULTRASONIC FUNCTIONS********************
 int measure(int trigPin, int echoPin){
   
   int duration, cm;
@@ -310,19 +331,20 @@ void intTobyte(int value){
   }
 }*/
 
-//Sorts and returns the median value of the array acting as an median filter.
-int sortArray (int a[]){
-  
-  int b[aSize];
-  int temp;
-  
-  for(int i=0; i<aSize-1; i++){
-    for(int j=aSize; j<aSize; j++){
-      if(a[i]<b[j])
-        temp = a[i]; a[i]=b[j]; b[j]=temp;
-    }
-  }
-  return a[2];
-}
-//***************************************************************
+////Sorts and returns the median value of the array acting as an median filter.
+////May not be used due to slowing down the system
+//int sortArray (int a[]){
+//  
+//  int b[aSize];
+//  int temp;
+//  
+//  for(int i=0; i<aSize-1; i++){
+//    for(int j=aSize; j<aSize; j++){
+//      if(a[i]<b[j])
+//        temp = a[i]; a[i]=b[j]; b[j]=temp;
+//    }
+//  }
+//  return a[2];
+//}
+//*******************************************************************
 

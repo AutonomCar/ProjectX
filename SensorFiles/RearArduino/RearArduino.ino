@@ -1,16 +1,16 @@
-//*************************INITIATE CAN******************************
+//*************************INITIATE CAN****************************
 #include <mcp_can.h>
 #include <SPI.h>
 
 long unsigned int rxId;
 unsigned char len = 0;
 unsigned char rxBuf[8];
-char msgString[128];                        // Array to store serial string
+char msgString[8];                        // Array to store serial string
 boolean intFlag = false;
 
 #define CAN0_INT 2                              // Set INT to pin 2
 MCP_CAN CAN0(10);                               // Set CS to pin 10
-//*******************************************************************
+//****************************************************************
 //*************************INITIATE RANGE SENSOR******************
 const int backSideTrigPin = 5;
 const int backSideEchoPin = 6;
@@ -21,10 +21,9 @@ const int aSize = 5;
 int backSide;
 int frontSide;
 //****************************************************************
-
-void setup() {
-  
-//***************************SETUP CAN***************************
+//***************************SETUP********************************
+void setup() { 
+//***************************SETUP CAN****************************
   // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
   if(CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_16MHZ) == CAN_OK)
     Serial.println("MCP2515 Initialized Successfully!");
@@ -47,7 +46,7 @@ void setup() {
 
 //***************************************************************
 }
-
+//***************************MAIN PROGRAM*************************
 void loop() {
   
   long duration, cm;
@@ -57,29 +56,23 @@ void loop() {
   if(flagCan==true){
     readCan();
     /*
-     * if(canMessage==ultrasonicrigth){
-     *  sendCan(front);
+     * if(canMessage==ultrasonicBackSide){
+     *  sendCan(measure(backSideTrigPin,backSideEchoPin));
      *  }
-     *  else if(canMessage==ultrasonicfrontRight){
-     *    sendCan(frontRight);
-     *  }
-     *  else if(canMessage==gyroscope){
-     *    sendCan(gyroscope);
-     *  }
-     *  else if(canMessage==accelerometer){
-     *    sendCan(accelerometer);
+     *  else if(canMessage==ultrasonicFrontSide){
+     *    sendCan(measure(frontSideTrigPin,frontSideEchoPin));
      *  }
      */
      intFlag=false;
   }
-
-  for(int i=0; i<aSize; i++){
-    
-    backSideArray[i]=measure(backSideTrigPin,backSideEchoPin);
-    frontSideArray[i]=measure(frontSideTrigPin,frontSideEchoPin);
-  }
-  backSide = sortArray(backSideArray);
-  frontSide = sortArray(frontSideArray);
+//
+//  for(int i=0; i<aSize; i++){
+//    
+//    backSideArray[i]=measure(backSideTrigPin,backSideEchoPin);
+//    frontSideArray[i]=measure(frontSideTrigPin,frontSideEchoPin);
+//  }
+//  backSide = sortArray(backSideArray);
+//  frontSide = sortArray(frontSideArray);
   
 }
 //*****************CAN FUNCTIONS*********************************
@@ -174,6 +167,7 @@ void intTobyte(int value){
 }*/
 
 //Sorts and returns the median value of the array acting as an median filter.
+//May not be used due to slowing down the system
 int sortArray (int a[]){
   
   int b[aSize];
