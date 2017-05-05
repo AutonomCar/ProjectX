@@ -21,7 +21,6 @@ const int aSize = 5;
 int backSide;
 int frontSide;
 //****************************************************************
-//***************************SETUP********************************
 void setup() { 
 //***************************SETUP CAN****************************
   // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
