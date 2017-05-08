@@ -6,7 +6,7 @@ long unsigned int rxId;
 unsigned char len = 0;
 unsigned char rxBuf[8];
 char msgString[8];                        // Array to store serial string
-boolean intFlag = false;
+const int sizeMsg = 3;
 
 #define CAN0_INT 2                              // Set INT to pin 2
 MCP_CAN CAN0(10);                               // Set CS to pin 10
@@ -19,7 +19,6 @@ MCP_CAN CAN0(10);                               // Set CS to pin 10
 //#define SerialDebug true  // Set to true to get Serial output for debugging
 
 const int intPinI2C = 12; //Can be changed to 2 and 3 as external interrupts
-const int intPinCan = 2;
 
 MPU9250 myIMU;
 //*******************************************************************
@@ -36,24 +35,20 @@ int frontRight;
 //************************INITIATE IR SENSOR*************************
 const int leftIR=0;
 const int rightIR=1;
+int value;
 //*******************************************************************
 //***************************SETUP***********************************
 void setup() {
 //************************SETUP MPU9250******************************
   Wire.begin();
-  // TWBR = 12;  // 400 kbit/sec I2C speed
+  //TWBR = 12;  // 400 kbit/sec I2C speed
   Serial.begin(115200);
 
-  // Set up the interrupt pin, its set as active high, push-pull
+  //Set up the interrupt pin, its set as active high, push-pull
   pinMode(intPinI2C, INPUT);
   digitalWrite(intPinI2C, LOW);
-
-  pinMode(intPinCan, INPUT);
-  digitalWrite(intPinCan, LOW);
   
   //***********TO DO, FIX INTTERRUPT*******************
-  attachInterrupt(0, flagCan, FALLING);
-
 
   // Read the WHO_AM_I register, this is a good test of communication
   byte c = myIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);
@@ -112,6 +107,7 @@ void setup() {
   }
 //*******************************************************************
 //***************************SETUP CAN*******************************
+  
   // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
   if(CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_16MHZ) == CAN_OK)
     Serial.println("MCP2515 Initialized Successfully!");
@@ -136,6 +132,8 @@ void setup() {
 //************************SETUP IR SENSOR****************************
   pinMode(leftIR, INPUT);
   pinMode(rightIR, INPUT);
+
+  value = (analogRead(leftIR)+analogRead(rightIR))/2;
 //*******************************************************************
 }
 //***************************MAIN PROGRAM****************************
@@ -152,34 +150,36 @@ void loop() {
     updateData();
   }
 
-  if(flagCan==true){
+  if(!digitalRead(CAN0_INT)){
     readCan();
-    /*
-     * if(canMessage==ultrasonicrigth){
-     *  sendCan(measure(frontTrigPin,frontEchoPin));
-     *  }
-     *  else if(canMessage==ultrasonicfrontRight){
-     *    sendCan(measure(frontRightTrigPin,frontRightEchoPin));
-     *  }
-     *  else if(canMessage==gyroscope){
-     *    sendCan(gyroscope);
-     *  }
-     *  else if(canMessage==accelerometer){
-     *    sendCan(accelerometer);
-     *  }
-     *  else if(checkLine){
-     *    int left = analogRead(lineLeft);
-     *    int right = analogRead(lineRight);
-     *    
-     *    if(left>right && left>value)
-     *      sendCan(left);
-     *    if(right>left && right>value);
-     *      sendCan(right);
-     *    else if(left>value && right>value);
-     *      sendCan(crossing);
-     *  }
-     */
-     intFlag=false;
+    
+      if(rxId==0x200){
+        sendCan(measure(frontTrigPin,frontEchoPin));
+       }
+       else if(rxId==0x200){
+         sendCan(measure(frontRightTrigPin,frontRightEchoPin));
+       }
+       else if(rxId==0x210){
+         sendCan(myIMU.gx);
+         sendCan(myIMU.gy);
+         sendCan(myIMU.gz);
+       }
+       else if(rxId==220){
+         sendCan(myIMU.ax*1000);
+         sendCan(myIMU.ay*1000);
+         sendCan(myIMU.az*1000);
+       }
+       else if(rxId==0x230){
+         int left = analogRead(leftIR);
+         int right = analogRead(rightIR);
+         //To do, set threshold values
+         if(left>right && left>value) 
+          sendCan(0);
+         if(right>left && right>value)
+          sendCan(1);
+         else if(left>value && right>value); {sendCan(2);}
+       }
+     
   }
 
   /*for(int i=0; i<aSize; i++){
@@ -195,12 +195,25 @@ void loop() {
 //*********************CAN FUNCTIONS*********************************
 
 //*****************TO DO, SET WHAT DATATYPE TO SEND********
-void sendCan(){
+void sendCan(int value){  
+  byte data[sizeMsg];// = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
   
-  byte data[8] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
-
+  //Simplifying having to use signed logic
+  if(value<0){
+    value = value*-1;
+    data[sizeMsg-1]=-1;
+  }
+  
+  //Masks first bits of the integer and saves it in the byte array
+  //then rightshifts value and saves it again
+  //This is in order to make sure every package is only one byte
+  for(int i=0; i<sizeMsg-1; i++){
+    data[i] = (byte) (value &0xFF);
+    value = value >> 8;
+  }
   // send data:  ID = 0x100, Standard CAN Frame, Data length = 8 bytes, 'data' = array of data bytes to send
-  byte sndStat = CAN0.sendMsgBuf(0x100, 0, 8, data);
+  byte sndStat = CAN0.sendMsgBuf(0x100, 0, sizeMsg, data);
+  
   if(sndStat == CAN_OK){
     Serial.println("Message Sent Successfully!");
   } else {
@@ -211,32 +224,27 @@ void sendCan(){
 //***************** TO DO, MAYBE MOVE FUNCTION AND CALL sendCan()*****************
 void readCan (){
   
-  if(!digitalRead(CAN0_INT)) {                 // If CAN0_INT pin is low, read receive buffer
-  
     CAN0.readMsgBuf(&rxId, &len, rxBuf);      // Read data: len = data length, buf = data byte(s)
-    
-    if((rxId & 0x80000000) == 0x80000000)     // Determine if ID is standard (11 bits) or extended (29 bits)
-      sprintf(msgString, "Extended ID: 0x%.8lX  DLC: %1d  Data:", (rxId & 0x1FFFFFFF), len);
-    else
-      sprintf(msgString, "Standard ID: 0x%.3lX       DLC: %1d  Data:", rxId, len);
-  
-    Serial.print(msgString);
-  
-    if((rxId & 0x40000000) == 0x40000000){    // Determine if message is a remote request frame.
-      sprintf(msgString, " REMOTE REQUEST FRAME");
-      Serial.print(msgString);
-    } else {
-      for(byte i = 0; i<len; i++){
-        sprintf(msgString, " 0x%.2X", rxBuf[i]);
-        Serial.print(msgString);
-      }
-    }
+//*******************SERIAL DEBUGGER*********************************
+//    if((rxId & 0x80000000) == 0x80000000)     // Determine if ID is standard (11 bits) or extended (29 bits)
+//      sprintf(msgString, "Extended ID: 0x%.8lX  DLC: %1d  Data:", (rxId & 0x1FFFFFFF), len);
+//    else
+//      sprintf(msgString, "Standard ID: 0x%.3lX       DLC: %1d  Data:", rxId, len);
+//  
+//    Serial.print(msgString);
+//  
+//    if((rxId & 0x40000000) == 0x40000000){    // Determine if message is a remote request frame.
+//      sprintf(msgString, " REMOTE REQUEST FRAME");
+//      Serial.print(msgString);
+//    } else {
+//      for(byte i = 0; i<len; i++){
+//        sprintf(msgString, " 0x%.2X", rxBuf[i]);
+//        //Serial.print(msgString);
+//      }
+//    }
         
-    Serial.println();
-  }
-}
-void flagCan(){
-  intFlag = true;
+    //Serial.println();
+//*******************************************************************
 }
 //*******************************************************************
 //****************************MPU 9250 FUNCTIONS*********************
