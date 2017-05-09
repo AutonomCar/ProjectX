@@ -180,16 +180,15 @@ void loop() {
          else if(left>value && right>value); {sendCan(2);}
        }
      
-  }
-
-  /*for(int i=0; i<aSize; i++){
-    
-    frontArray[i]=measure(frontTrigPin,frontEchoPin);
-    frontRightArray[i]=measure(frontRightTrigPin,frontRightEchoPin);
-  }
-  front = sortArray(frontArray);
-  frontRight = sortArray(frontRightArray);
-  */
+   }
+//  for(int i=0; i<aSize; i++){
+//    
+//    frontArray[i]=measure(frontTrigPin,frontEchoPin);
+//    frontRightArray[i]=measure(frontRightTrigPin,frontRightEchoPin);
+//  }
+//  front = sortArray(frontArray);
+//  frontRight = sortArray(frontRightArray);
+//  
 }
 //*******************************************************************
 //*********************CAN FUNCTIONS*********************************
@@ -315,7 +314,7 @@ int measure(int trigPin, int echoPin){
   pinMode(echoPin, INPUT);
   duration = pulseIn(echoPin, HIGH);
 
-  // convert the time into a distance
+  //Convert the time into a distance
   cm = microsecondsToCentimeters(duration);
   if(cm<0){
     cm = measure(trigPin, echoPin);
