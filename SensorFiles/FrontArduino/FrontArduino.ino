@@ -5,8 +5,11 @@
 long unsigned int rxId;
 unsigned char len = 0;
 unsigned char rxBuf[8];
-char msgString[8];                        // Array to store serial string
-const int sizeMsg = 3;
+const int sizeMsg = 3;                      // Sets the ammount of bytes sent on the CAN
+const byte frontUltAd = 0x210;
+const byte frontRUltAd = 0x211;
+const byte leftIRAd = 0x212;
+const byte rightIRAd = 0x213;
 
 #define CAN0_INT 2                              // Set INT to pin 2
 MCP_CAN CAN0(10);                               // Set CS to pin 10
@@ -28,6 +31,7 @@ const int frontEchoPin = 6;
 const int frontRightTrigPin = 8;
 const int frontRightEchoPin = 9;
 const int aSize = 5;
+int count = 0;
 
 int front;
 int frontRight;
@@ -48,13 +52,11 @@ void setup() {
   pinMode(intPinI2C, INPUT);
   digitalWrite(intPinI2C, LOW);
   
-  //***********TO DO, FIX INTTERRUPT*******************
 
   // Read the WHO_AM_I register, this is a good test of communication
   byte c = myIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);
   Serial.print("MPU9250 "); Serial.print("I AM "); Serial.print(c, HEX);
   Serial.print(" I should be "); Serial.println(0x71, HEX);
-
 
   if (c == 0x71) // WHO_AM_I should always be 0x68
   {
@@ -103,7 +105,6 @@ void setup() {
 //      Serial.print("Z-Axis sensitivity adjustment value ");
 //      Serial.println(myIMU.factoryMagCalibration[2], 2);
 //    }
-
   }
 //*******************************************************************
 //***************************SETUP CAN*******************************
@@ -139,86 +140,89 @@ void setup() {
 //***************************MAIN PROGRAM****************************
 void loop() {
 
-  long duration, cm;
-  int frontArray[aSize];
-  int frontRightArray[aSize];
-
   //**********************READ MPU 9250 DATA*********************
-  // If intPin goes high, all data registers have new data
-  // On interrupt, check if data ready interrupt
-  if (myIMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {
-    updateData();
-  }
+//  // If intPin goes high, all data registers have new data
+//  // On interrupt, check if data ready interrupt
+//  if (myIMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {
+//    updateData();
+//  }
+  
+  if(!digitalRead(CAN0_INT) && rxId==0x200){
 
-  if(!digitalRead(CAN0_INT)){
-    readCan();
+    sendCan(front);
+    sendCan(frontRight);
+    sendCan(analogRead(leftIR));
+    sendCan(analogRead(rightIR));
     
-      if(rxId==0x200){
-        sendCan(measure(frontTrigPin,frontEchoPin));
-       }
-       else if(rxId==0x200){
-         sendCan(measure(frontRightTrigPin,frontRightEchoPin));
-       }
-       else if(rxId==0x210){
-         sendCan(myIMU.gx);
-         sendCan(myIMU.gy);
-         sendCan(myIMU.gz);
-       }
-       else if(rxId==220){
-         sendCan(myIMU.ax*1000);
-         sendCan(myIMU.ay*1000);
-         sendCan(myIMU.az*1000);
-       }
-       else if(rxId==0x230){
-         int left = analogRead(leftIR);
-         int right = analogRead(rightIR);
-         //To do, set threshold values
-         if(left>right && left>value) 
-          sendCan(0);
-         if(right>left && right>value)
-          sendCan(1);
-         else if(left>value && right>value); {sendCan(2);}
-       }
-     
-   }
+  }
+  
+//  if(!digitalRead(CAN0_INT)){
+//    readCan();
+//    
+//      if(rxId==0x200){
+//        sendCan(measure(frontTrigPin,frontEchoPin));
+//       }
+//       else if(rxId==0x210){
+//         sendCan(measure(frontRightTrigPin,frontRightEchoPin));
+//       }
+//       else if(rxId==0x220){
+//         sendCan(myIMU.gx);
+//         sendCan(myIMU.gy);
+//         sendCan(myIMU.gz);
+//       }
+//       else if(rxId==230){x
+//         sendCan(myIMU.ax*1000);
+//         sendCan(myIMU.ay*1000);
+//         sendCan(myIMU.az*1000);
+//       }
+//       else if(rxId==0x240){
+//         int left = analogRead(leftIR);
+//         int right = analogRead(rightIR);
+//         //To do, set threshold values
+//         if(left>right && left>value) 
+//          sendCan(0);
+//         if(right>left && right>value)
+//          sendCan(1);
+//         else if(left>value && right>value); 
+//          sendCan(2);
+//       }
+//   }
+//  Read Ultrasonic sensor, store in an array and sort it to creat an median filter
+//  It's a rather slow process and it didn't completly remove the faulty values
 //  for(int i=0; i<aSize; i++){
 //    
 //    frontArray[i]=measure(frontTrigPin,frontEchoPin);
 //    frontRightArray[i]=measure(frontRightTrigPin,frontRightEchoPin);
 //  }
 //  front = sortArray(frontArray);
-//  frontRight = sortArray(frontRightArray);
-//  
+//  frontRight = sortArray(frontRightArray); 
 }
 //*******************************************************************
 //*********************CAN FUNCTIONS*********************************
-
-//*****************TO DO, SET WHAT DATATYPE TO SEND********
-void sendCan(int value){  
-  byte data[sizeMsg];// = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
+//**************TO DO, SET WHAT DATATYPE TO SEND********
+void sendCan(int value, byte adress){  
+  byte data[sizeMsg];
   
   //Simplifying having to use signed logic
   if(value<0){
     value = value*-1;
     data[sizeMsg-1]=-1;
   }
-  
   //Masks first bits of the integer and saves it in the byte array
   //then rightshifts value and saves it again
   //This is in order to make sure every package is only one byte
   for(int i=0; i<sizeMsg-1; i++){
-    data[i] = (byte) (value &0xFF);
+    data[i] = (byte) (value & 0xFF);
     value = value >> 8;
   }
   // send data:  ID = 0x100, Standard CAN Frame, Data length = 8 bytes, 'data' = array of data bytes to send
-  byte sndStat = CAN0.sendMsgBuf(0x100, 0, sizeMsg, data);
+  byte sndStat = CAN0.sendMsgBuf(adress, 0, sizeMsg, data);
   
   if(sndStat == CAN_OK){
     Serial.println("Message Sent Successfully!");
   } else {
     Serial.println("Error Sending Message...");
   }
-  
 }
 //***************** TO DO, MAYBE MOVE FUNCTION AND CALL sendCan()*****************
 void readCan (){
@@ -240,10 +244,8 @@ void readCan (){
 //        sprintf(msgString, " 0x%.2X", rxBuf[i]);
 //        //Serial.print(msgString);
 //      }
-//    }
-        
+//    }        
     //Serial.println();
-//*******************************************************************
 }
 //*******************************************************************
 //****************************MPU 9250 FUNCTIONS*********************
@@ -318,30 +320,23 @@ int measure(int trigPin, int echoPin){
   cm = microsecondsToCentimeters(duration);
   if(cm<0){
     cm = measure(trigPin, echoPin);
+    count++;
+    if(count==5){
+      count = 0;
+      return -1;
+    }
   }
   return cm;
-
 }
-
 int microsecondsToCentimeters(int microseconds){  
   // The speed of sound is 340 m/s or 29 microseconds per centimeter.
   // The ping travels out and back, so to find the distance of the
   // object we take half of the distance travelled.
   return (microseconds / 29 / 2);
 }
-/*******************TO DO*********************
-void intTobyte(int value){
-
-  for(int i=0; i<8; i++){
-    data[i] = value%16 , HEX;
-    value = value/16;
-  Serial.println(data[i]);
-  }
-}*/
-
 ////Sorts and returns the median value of the array acting as an median filter.
 ////May not be used due to slowing down the system
-//int sortArray (int a[]){
+//int sortArray (int a[]){  
 //  
 //  int b[aSize];
 //  int temp;
