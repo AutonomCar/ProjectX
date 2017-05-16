@@ -332,10 +332,13 @@ int measure(int trigPin, int echoPin){
   if(cm<0){
     cm = measure(trigPin, echoPin);
     count++;
-    if(count==5){
-      count = 0;
+    if(cm<0){
       return -1;
     }
+//    if(count==5){
+//      count = 0;
+//      return -1;
+//    }
   }
   return cm;
 }
