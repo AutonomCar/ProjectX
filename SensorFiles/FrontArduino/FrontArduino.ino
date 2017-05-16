@@ -6,10 +6,10 @@ long unsigned int rxId;
 unsigned char len = 0;
 unsigned char rxBuf[8];
 const int sizeMsg = 3;                      // Sets the ammount of bytes sent on the CAN
-const byte frontUltAd = 0x210;
-const byte frontRUltAd = 0x211;
-const byte leftIRAd = 0x212;
-const byte rightIRAd = 0x213;
+const byte frontUltAd = 101;
+const byte frontRUltAd = 102;
+const byte leftIRAd = 103;
+const byte rightIRAd = 104;
 
 #define CAN0_INT 2                              // Set INT to pin 2
 MCP_CAN CAN0(10);                               // Set CS to pin 10
@@ -143,19 +143,26 @@ void loop() {
 //  if (myIMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {
 //    updateData();
 //  }
-
-  front = measure(frontTrigPin, frontEchoPin);
-  frontRight = measure(frontRightTrigPin, frontRightEchoPin);
-  leftIR = analogRead(leftIRPin);
-  rightIR = analogRead(rightIRPin);
   
-  if(!digitalRead(CAN0_INT) && rxId==0x200){
-
-    sendCan(front, frontUltAd);
-    sendCan(frontRight, frontRUltAd);
-    sendCan(leftIR, leftIRAd);
-    sendCan(rightIR, rightIRAd);
-    
+  front = measure(frontTrigPin, frontEchoPin);
+  //Serial.println(frontRight = measure(frontRightTrigPin, frontRightEchoPin));
+  
+  //leftIR = analogRead(leftIRPin);
+  //rightIR = analogRead(rightIRPin);
+  
+  if(!digitalRead(CAN0_INT)){
+    Serial.println("Successfull read");
+    readCan();
+    if(rxId == 0x200){
+      sendCan(front, frontUltAd);
+      Serial.println(front);
+      sendCan(600, frontRUltAd);
+      Serial.println(600);
+      sendCan(700, leftIRAd);
+      Serial.println(700);
+      sendCan(800, rightIRAd);
+      Serial.println(800);
+    }
   }  
 //  if(!digitalRead(CAN0_INT)){
 //    readCan();
@@ -201,10 +208,11 @@ void loop() {
 //*******************************************************************
 //*********************CAN FUNCTIONS*********************************
 void sendCan(int value, byte adress){  
-  byte data[sizeMsg];
+  byte data[sizeMsg] = {0,0,0};
 
   //To do, check if necessary
   //Simplifying having to use signed logic
+  Serial.println(value);
   if(value<0){
     value = value*-1;
     data[sizeMsg-1]=-1;
@@ -216,6 +224,10 @@ void sendCan(int value, byte adress){
     data[i] = (byte) (value & 0xFF);
     value = value >> 8;
   }
+  Serial.println(adress);
+  Serial.println(data[0]);
+  Serial.println(data[1]);
+  Serial.println(data[2]);
   // send data:  ID = 0x100, Standard CAN Frame, Data length = 8 bytes, 'data' = array of data bytes to send
   byte sndStat = CAN0.sendMsgBuf(adress, 0, sizeMsg, data);
   
