@@ -18,7 +18,6 @@ MCP_CAN CAN0(10);                               // Set CS to pin 10
 #include <MPU9250.h>
 #include <quaternionFilters.h>
 
-//#define AHRS false      // Set to false for basic data read
 //#define SerialDebug true  // Set to true to get Serial output for debugging
 
 const int intPinI2C = 12; //Can be changed to 2 and 3 as external interrupts
@@ -37,15 +36,15 @@ int front;
 int frontRight;
 //*******************************************************************
 //************************INITIATE IR SENSOR*************************
-const int leftIR=0;
-const int rightIR=1;
-int value;
+const int leftIRPin=0;
+const int rightIRPin=1;
+int leftIR;
+int rightIR;
 //*******************************************************************
 //***************************SETUP***********************************
 void setup() {
 //************************SETUP MPU9250******************************
   Wire.begin();
-  //TWBR = 12;  // 400 kbit/sec I2C speed
   Serial.begin(115200);
 
   //Set up the interrupt pin, its set as active high, push-pull
@@ -120,8 +119,7 @@ void setup() {
   pinMode(CAN0_INT, INPUT);                     // Configuring pin for /INT input
   
   Serial.println("MCP2515 Library Receive Example...");
-  //***********TO DO, FIX INTTERRUPT*******************
-  //attachInterrupt(0, setFlag, CHANGE);
+  
 //*******************************************************************
 //**************************SETUP RANGE SENSOR***********************
   pinMode(frontTrigPin, OUTPUT);
@@ -131,10 +129,9 @@ void setup() {
 
 //*******************************************************************
 //************************SETUP IR SENSOR****************************
-  pinMode(leftIR, INPUT);
-  pinMode(rightIR, INPUT);
+  pinMode(leftIRPin, INPUT);
+  pinMode(rightIRPin, INPUT);
 
-  value = (analogRead(leftIR)+analogRead(rightIR))/2;
 //*******************************************************************
 }
 //***************************MAIN PROGRAM****************************
@@ -146,16 +143,20 @@ void loop() {
 //  if (myIMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {
 //    updateData();
 //  }
+
+  front = measure(frontTrigPin, frontEchoPin);
+  frontRight = measure(frontRightTrigPin, frontRightEchoPin);
+  leftIR = analogRead(leftIRPin);
+  rightIR = analogRead(rightIRPin);
   
   if(!digitalRead(CAN0_INT) && rxId==0x200){
 
-    sendCan(front);
-    sendCan(frontRight);
-    sendCan(analogRead(leftIR));
-    sendCan(analogRead(rightIR));
+    sendCan(front, frontUltAd);
+    sendCan(frontRight, frontRUltAd);
+    sendCan(leftIR, leftIRAd);
+    sendCan(rightIR, rightIRAd);
     
-  }
-  
+  }  
 //  if(!digitalRead(CAN0_INT)){
 //    readCan();
 //    
@@ -199,10 +200,10 @@ void loop() {
 }
 //*******************************************************************
 //*********************CAN FUNCTIONS*********************************
-//**************TO DO, SET WHAT DATATYPE TO SEND********
 void sendCan(int value, byte adress){  
   byte data[sizeMsg];
-  
+
+  //To do, check if necessary
   //Simplifying having to use signed logic
   if(value<0){
     value = value*-1;
@@ -251,7 +252,6 @@ void readCan (){
 //****************************MPU 9250 FUNCTIONS*********************
 void updateData (){
 
-  
     myIMU.readAccelData(myIMU.accelCount);  // Read the x/y/z adc values
     myIMU.getAres();
 
@@ -271,9 +271,8 @@ void updateData (){
     myIMU.gz = (float)myIMU.gyroCount[2] * myIMU.gRes;
 
     /*
-     * 
      * myIMU.tempCount = myIMU.readTempData();  // Read the adc values
-       myIMU.temperature = ((float) myIMU.tempCount) / 333.87 + 21.0;  // Temperature in degrees Centigrade
+     * myIMU.temperature = ((float) myIMU.tempCount) / 333.87 + 21.0;  // Temperature in degrees Centigrade
      * 
      */
 
@@ -350,4 +349,3 @@ int microsecondsToCentimeters(int microseconds){
 //  return a[2];
 //}
 //*******************************************************************
-

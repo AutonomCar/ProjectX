@@ -5,8 +5,9 @@
 long unsigned int rxId;
 unsigned char len = 0;
 unsigned char rxBuf[8];
-char msgString[8];                        // Array to store serial string
-boolean intFlag = false;
+const int sizeMsg = 3;
+const byte backSideAd = 0x214;
+const byte frontSideAd = 0x215;
 
 #define CAN0_INT 2                              // Set INT to pin 2
 MCP_CAN CAN0(10);                               // Set CS to pin 10
@@ -17,6 +18,7 @@ const int backSideEchoPin = 6;
 const int frontSideTrigPin = 8;
 const int frontSideEchoPin = 9;
 const int aSize = 5;
+int count = 0;
 
 int backSide;
 int frontSide;
@@ -34,8 +36,7 @@ void setup() {
   pinMode(CAN0_INT, INPUT);                            // Configuring pin for /INT input
   
   Serial.println("MCP2515 Library Receive Example...");
-  //***********TO DO, FIX INTTERRUPT*******************
-  //attachInterrupt(0, setFlag, CHANGE);
+
 //***************************************************************
 //**************************SETUP RANGE SENSOR*******************
   pinMode(backSideTrigPin, OUTPUT);
@@ -47,13 +48,8 @@ void setup() {
 }
 //***************************MAIN PROGRAM*************************
 void loop() {
-  
-  long duration, cm;
-  int backSideArray[aSize];
-  int frontSideArray[aSize];
 
-  if(flagCan==true){
-    readCan();
+  if(!digitalRead(CAN0_INT) && rxId==0x200){
     /*
      * if(canMessage==ultrasonicBackSide){
      *  sendCan(measure(backSideTrigPin,backSideEchoPin));
@@ -62,7 +58,6 @@ void loop() {
      *    sendCan(measure(frontSideTrigPin,frontSideEchoPin));
      *  }
      */
-     intFlag=false;
   }
 //
 //  for(int i=0; i<aSize; i++){
@@ -76,26 +71,35 @@ void loop() {
 }
 //*****************CAN FUNCTIONS*********************************
 //*****************TO DO, SET WHAT DATATYPE TO SEND***************
-void sendCan(){
+void sendCan(int value, byte adress){  
+  byte data[sizeMsg];
   
-  byte data[8] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
-
+  //Simplifying having to use signed logic
+  if(value<0){
+    value = value*-1;
+    data[sizeMsg-1]=-1;
+  }
+  //Masks first bits of the integer and saves it in the byte array
+  //then rightshifts value and saves it again
+  //This is in order to make sure every package is only one byte
+  for(int i=0; i<sizeMsg-1; i++){
+    data[i] = (byte) (value & 0xFF);
+    value = value >> 8;
+  }
   // send data:  ID = 0x100, Standard CAN Frame, Data length = 8 bytes, 'data' = array of data bytes to send
-  byte sndStat = CAN0.sendMsgBuf(0x100, 0, 8, data);
+  byte sndStat = CAN0.sendMsgBuf(adress, 0, sizeMsg, data);
+  
   if(sndStat == CAN_OK){
     Serial.println("Message Sent Successfully!");
   } else {
     Serial.println("Error Sending Message...");
   }
-  
 }
 //***************** TO DO, MAYBE MOVE FUNCTION AND CALL sendCan*****************
 void readCan (){
-  
-  if(!digitalRead(CAN0_INT)) {                 // If CAN0_INT pin is low, read receive buffer
-  
-    CAN0.readMsgBuf(&rxId, &len, rxBuf);      // Read data: len = data length, buf = data byte(s)
     
+    CAN0.readMsgBuf(&rxId, &len, rxBuf);      // Read data: len = data length, buf = data byte(s)
+/*    
     if((rxId & 0x80000000) == 0x80000000)     // Determine if ID is standard (11 bits) or extended (29 bits)
       sprintf(msgString, "Extended ID: 0x%.8lX  DLC: %1d  Data:", (rxId & 0x1FFFFFFF), len);
     else
@@ -114,10 +118,7 @@ void readCan (){
     }
         
     Serial.println();
-  }
-}
-void flagCan(){
-  intFlag = true;
+*/  
 }
 //***************************************************************
 //***************************ULTRASONIC FUNCTIONS****************
@@ -140,44 +141,37 @@ int measure(int trigPin, int echoPin){
   pinMode(echoPin, INPUT);
   duration = pulseIn(echoPin, HIGH);
 
-  // convert the time into a distance
+  //Convert the time into a distance
   cm = microsecondsToCentimeters(duration);
   if(cm<0){
     cm = measure(trigPin, echoPin);
+    count++;
+    if(count==5){
+      count = 0;
+      return -1;
+    }
   }
   return cm;
-
 }
-
 int microsecondsToCentimeters(int microseconds){  
   // The speed of sound is 340 m/s or 29 microseconds per centimeter.
   // The ping travels out and back, so to find the distance of the
   // object we take half of the distance travelled.
   return (microseconds / 29 / 2);
 }
-/*******************TO DO*********************
-void intTobyte(int value){
-
-  for(int i=0; i<8; i++){
-    data[i] = value%16 , HEX;
-    value = value/16;
-  Serial.println(data[i]);
-  }
-}*/
-
 //Sorts and returns the median value of the array acting as an median filter.
 //May not be used due to slowing down the system
-int sortArray (int a[]){
-  
-  int b[aSize];
-  int temp;
-  
-  for(int i=0; i<aSize-1; i++){
-    for(int j=aSize; j<aSize; j++){
-      if(a[i]<b[j])
-        temp = a[i]; a[i]=b[j]; b[j]=temp;
-    }
-  }
-  return a[2];
-}
+//int sortArray (int a[]){
+//  
+//  int b[aSize];
+//  int temp;
+//  
+//  for(int i=0; i<aSize-1; i++){
+//    for(int j=aSize; j<aSize; j++){
+//      if(a[i]<b[j])
+//        temp = a[i]; a[i]=b[j]; b[j]=temp;
+//    }
+//  }
+//  return a[2];
+//}
 //***************************************************************
