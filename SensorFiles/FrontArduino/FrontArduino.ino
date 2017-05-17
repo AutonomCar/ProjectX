@@ -25,10 +25,10 @@ const int intPinI2C = 12; //Can be changed to 2 and 3 as external interrupts
 MPU9250 myIMU;
 //*******************************************************************
 //*************************INITIATE RANGE SENSOR*********************
-const int frontTrigPin = 5;
-const int frontEchoPin = 6;
-const int frontRightTrigPin = 8;
-const int frontRightEchoPin = 9;
+const int frontTrigPin = 8;
+const int frontEchoPin = 9;
+const int frontRightTrigPin = 5;
+const int frontRightEchoPin = 6;
 const int aSize = 5;
 int count = 0;
 
@@ -57,13 +57,14 @@ void setup() {
   Serial.print("MPU9250 "); Serial.print("I AM "); Serial.print(c, HEX);
   Serial.print(" I should be "); Serial.println(0x71, HEX);
 
-  if (c == 0x71) // WHO_AM_I should always be 0x68
-  {
+  if (c == 0x71){ // WHO_AM_I should always be 0x68
     Serial.println("MPU9250 is online...");
 
-    // Start by performing self test and reporting values
+
+/*  // Start by performing self test and reporting values
     myIMU.MPU9250SelfTest(myIMU.selfTest);
-/*  Serial.print("x-axis self test: acceleration trim within : ");
+
+    Serial.print("x-axis self test: acceleration trim within : ");
     Serial.print(myIMU.selfTest[0], 1); Serial.println("% of factory value");
     Serial.print("y-axis self test: acceleration trim within : ");
     Serial.print(myIMU.selfTest[1], 1); Serial.println("% of factory value");
@@ -94,17 +95,16 @@ void setup() {
     myIMU.initAK8963(myIMU.factoryMagCalibration);
     // Initialize device for active mode read of magnetometer
     Serial.println("AK8963 initialized for active data mode....");
-//    if (SerialDebug)
-//    {
-//      //  Serial.println("Calibration values: ");
-//      Serial.print("X-Axis sensitivity adjustment value ");
-//      Serial.println(myIMU.factoryMagCalibration[0], 2);
-//      Serial.print("Y-Axis sensitivity adjustment value ");
-//      Serial.println(myIMU.factoryMagCalibration[1], 2);
-//      Serial.print("Z-Axis sensitivity adjustment value ");
-//      Serial.println(myIMU.factoryMagCalibration[2], 2);
-//    }
-  }
+#ifdef debug9250
+      Serial.println("Calibration values: ");
+      Serial.print("X-Axis sensitivity adjustment value ");
+      Serial.println(myIMU.factoryMagCalibration[0], 2);
+      Serial.print("Y-Axis sensitivity adjustment value ");
+      Serial.println(myIMU.factoryMagCalibration[1], 2);
+      Serial.print("Z-Axis sensitivity adjustment value ");
+      Serial.println(myIMU.factoryMagCalibration[2], 2);
+#endif //debug9250
+}
 //*******************************************************************
 //***************************SETUP CAN*******************************
   
@@ -137,18 +137,26 @@ void setup() {
 //***************************MAIN PROGRAM****************************
 void loop() {
 
-  //**********************READ MPU 9250 DATA*********************
-//  // If intPin goes high, all data registers have new data
-//  // On interrupt, check if data ready interrupt
-//  if (myIMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {
-//    updateData();
-//  }
+//**********************READ MPU 9250 DATA*********************
+  // If intPin goes high, all data registers have new data
+  // On interrupt, check if data ready interrupt
+  if (myIMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {
+    updateData();
+  }
   
-  front = measure(frontTrigPin, frontEchoPin);
-  //Serial.println(frontRight = measure(frontRightTrigPin, frontRightEchoPin));
+  //front = measure(frontTrigPin, frontEchoPin);
+  //frontRight = measure(frontRightTrigPin, frontRightEchoPin);
   
   //leftIR = analogRead(leftIRPin);
   //rightIR = analogRead(rightIRPin);
+
+  myIMU.readAccelData(myIMU.accelCount);
+  Serial.print(" Acceleration in X-Axis : ");
+  Serial.println(myIMU.ax);
+  Serial.print(" Acceleration in Y-Axis : ");
+  Serial.println(myIMU.ay);
+  Serial.print(" Turning round Z-Axis : ");
+  Serial.println(myIMU.gz);
   
   if(!digitalRead(CAN0_INT)){
     Serial.println("Successfull read");
@@ -156,54 +164,15 @@ void loop() {
     if(rxId == 0x200){
       sendCan(front, frontUltAd);
       Serial.println(front);
-      sendCan(600, frontRUltAd);
-      Serial.println(600);
-      sendCan(700, leftIRAd);
-      Serial.println(700);
-      sendCan(800, rightIRAd);
-      Serial.println(800);
+      sendCan(frontRight, frontRUltAd);
+      Serial.println(frontRight);
+//      sendCan(700, leftIRAd);
+//      Serial.println(700);
+//      sendCan(800, rightIRAd);
+//      Serial.println(800);
     }
   }  
-//  if(!digitalRead(CAN0_INT)){
-//    readCan();
-//    
-//      if(rxId==0x200){
-//        sendCan(measure(frontTrigPin,frontEchoPin));
-//       }
-//       else if(rxId==0x210){
-//         sendCan(measure(frontRightTrigPin,frontRightEchoPin));
-//       }
-//       else if(rxId==0x220){
-//         sendCan(myIMU.gx);
-//         sendCan(myIMU.gy);
-//         sendCan(myIMU.gz);
-//       }
-//       else if(rxId==230){x
-//         sendCan(myIMU.ax*1000);
-//         sendCan(myIMU.ay*1000);
-//         sendCan(myIMU.az*1000);
-//       }
-//       else if(rxId==0x240){
-//         int left = analogRead(leftIR);
-//         int right = analogRead(rightIR);
-//         //To do, set threshold values
-//         if(left>right && left>value) 
-//          sendCan(0);
-//         if(right>left && right>value)
-//          sendCan(1);
-//         else if(left>value && right>value); 
-//          sendCan(2);
-//       }
-//   }
-//  Read Ultrasonic sensor, store in an array and sort it to creat an median filter
-//  It's a rather slow process and it didn't completly remove the faulty values
-//  for(int i=0; i<aSize; i++){
-//    
-//    frontArray[i]=measure(frontTrigPin,frontEchoPin);
-//    frontRightArray[i]=measure(frontRightTrigPin,frontRightEchoPin);
-//  }
-//  front = sortArray(frontArray);
-//  frontRight = sortArray(frontRightArray); 
+
 }
 //*******************************************************************
 //*********************CAN FUNCTIONS*********************************
@@ -224,6 +193,7 @@ void sendCan(int value, byte adress){
     data[i] = (byte) (value & 0xFF);
     value = value >> 8;
   }
+  
   Serial.println(adress);
   Serial.println(data[0]);
   Serial.println(data[1]);
@@ -271,15 +241,15 @@ void updateData (){
     // This depends on scale being set
     myIMU.ax = (float)myIMU.accelCount[0] * myIMU.aRes; // - accelBias[0];
     myIMU.ay = (float)myIMU.accelCount[1] * myIMU.aRes; // - accelBias[1];
-    myIMU.az = (float)myIMU.accelCount[2] * myIMU.aRes; // - accelBias[2];
+    //myIMU.az = (float)myIMU.accelCount[2] * myIMU.aRes; // - accelBias[2];
 
     myIMU.readGyroData(myIMU.gyroCount);  // Read the x/y/z adc values
     myIMU.getGres();
 
     // Calculate the gyro value into actual degrees per second
     // This depends on scale being set
-    myIMU.gx = (float)myIMU.gyroCount[0] * myIMU.gRes;
-    myIMU.gy = (float)myIMU.gyroCount[1] * myIMU.gRes;
+    //myIMU.gx = (float)myIMU.gyroCount[0] * myIMU.gRes;
+    //myIMU.gy = (float)myIMU.gyroCount[1] * myIMU.gRes;
     myIMU.gz = (float)myIMU.gyroCount[2] * myIMU.gRes;
 
     /*
@@ -335,10 +305,6 @@ int measure(int trigPin, int echoPin){
     if(cm<0){
       return -1;
     }
-//    if(count==5){
-//      count = 0;
-//      return -1;
-//    }
   }
   return cm;
 }
