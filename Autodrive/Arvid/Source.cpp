@@ -1,7 +1,7 @@
 
 #include <string.h>
 #include <iostream>
-#include "Communication.h"
+#include "Bluetooth.hpp"
 
 
 using namespace std;
@@ -13,15 +13,18 @@ int main(){
 	int x;
 	x = 0;
 
-	int USB = connectBL();
+    setSlave();
+    //setMaster("adressen in");
+
+	int USB = connectBT();
 
 	while(1){
 
 		cout << x << endl;
 
-        writeBL(USB, msg);
+        writeBT(USB, msg);
 
-        response = readBL(USB);
+        response = readBT(USB);
 
 
         cout << response << "!" << endl;
@@ -29,5 +32,5 @@ int main(){
 		x++;
 	}
 
-return 0;
+ſreturn 0;
 }

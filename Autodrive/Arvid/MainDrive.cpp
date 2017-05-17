@@ -1,8 +1,8 @@
 
 #include <string.h>
 #include <iostream>
-#include "Communication.h"
-//#include "Navigation.h"
+#include "Bluetooth.hpp"
+#include "Can-bus.hpp"
 
 
 
@@ -18,35 +18,37 @@ int CROSSING = 4;		// Manage an intersection
 int JUST_DRIVE = 5;	// Drive forward, turn when ecountering obstacles (roomba style)
 int ERROR = 6;		// Something is wrong. Stop Car Immediatly.
 
-int NORMAL = 1;
-int BACK = 0;
-int STOP = 2;
-
-int LEFT = 1;
-int RIGHT = 2;
-int STRAIGHT = 0;
-
-
 
 void updateMode(){
 
-    /* // TESTING
+
 	//Object within 100cm in front of car
-	if( (getCAN(110, 1)>100) && (mode!=FOLLOW_CAR) && (mode == FOLLOW_ROAD) ) // Stop if object appears between the cars in FOLLOWING_CAR
+	if( (fmu>100) && (mode!=FOLLOW_CAR) && (mode == FOLLOW_ROAD) ){ // Stop if object appears between the cars in FOLLOWING_CAR
+        if(mode != AVOID){
+            cout << "Avoiding obstacle" << endl;
+        }
 		mode = AVOID;
+	}
 
 	//Paralell line under car. When not in AVOID procedure.
-	else if( (getCAN(110, 1)>100)  && getCAN(210, ) && (mode!=AVOID)) //TODO fix getCAN(IR FRONT)
+	else if( (lir==1) && (rir == 1) && (mode!=AVOID) ){
+		if(mode != CROSSING){
+            cout << "In Intersection" << endl;
+		}
 		mode = CROSSING;
-
+	}
 	//If there are lanes to follow
-	else if(foundRightLine() || foundLeftLine()) //TODO
-		mode = FOLLOWING_ROAD;
+	// TODO set imageprocessor start
 
 
 	//If there is no input to make a decision, drive until some input is aquired.
-	else */ //TESTING
+	else{
+        if(mode != JUST_DRIVE){
+            cout << "Just Driving" << endl;
+        }
 		mode = JUST_DRIVE;
+	}
+
 }
 
 
@@ -56,47 +58,17 @@ void updateMode(int m){ // Force specific mode
 }
 
 
-
-/* // TESTING
 void avoid(){ //TODO check values and maybe fix for avoiding in a bend or turn in the road, HARDCODED :(
-	interface.setSpeed(SLOW_SPEED);
+	sendCAN(00,'s');
 
-	interface.setAngle(-0.5);
-	int wait = 0;
-	while(interface.getSonarFront()<100){	//wait until the object is not in front anymore.
-		wait++;
-		if(leftLineFound){
-			interface.setSpeed(0);
-			mode = ERROR;
-		}
-	}
-	int return = wait;
-	interface.setAngle(0.5);
-	while(( wait>0) && (interface.getSonarFront()>100) ){ //straighten out
-		wait--;
-	}
-	interface.setAngle(0);
-
-	mode = FOLLOW_ROAD; 			// Use standard road following precedure until obstacle is passed.
-	while(interface.getSonarSide()<30){
-		ImageProcessor.run();		<<<<FIX
-	}
-
-
-	interface.setAngle(0.5);
-	while(return>0){ 			//Turn until returned to original lane.
-		return--;
-		wait++;
-	}
-	interface.setAngle(-0.5);
-	while( !foundRightLine || (wait>0) ){ 	//straighten out
-		wait--;
-	}
-	interface.setAngle(0);
-
+    /*
+    Slow down
+    turn left until passed the center line.
+    follow road until obstacle is passed
+    turn right until passed the center line.
+    update mode.
+    */
 }
-
-*/ // TESTING
 /* // TESTING
 void followCar(){
 	if(getCAN(110,1)>110)
@@ -124,44 +96,22 @@ void crossing(){
 */ // TESTING
 
 void justDrive(){
-    cout << "justDrive" << endl;
-    usleep(1000000);
+    sendCAN(80, 'a');
+    sendCAN(70, 'f');
+    usleep(100000);
 
-    cout << "Forward" << endl;
-    speed(NORMAL);
-    usleep(1000000);
 
-    cout << "Stop" << endl;
-    speed(STOP);
-    usleep(1000000);
+    if(fmu<100){
+        cout << "oh no! obstacle!!" << fmu <<endl;
+        sendCAN(00, 's');
+        usleep(1000000);
+        sendCAN(48, 'a');
 
-    cout << "Backward" << endl;
-    speed(BACK);
-    usleep(1000000);
-
-    cout << "Stop" << endl;
-    speed(STOP);
-    usleep(1000000);
-
-    cout << "Forward" << endl;
-    speed(NORMAL);
-    usleep(1000000);
-
-    cout << "Turn Left" << endl;
-    turn(LEFT);
-    usleep(1000000);
-
-    cout << "Turn Right" << endl;
-    turn(RIGHT);
-    usleep(1000000);
-
-    cout << "Turn Straight" << endl;
-    turn(STRAIGHT);
-    usleep(1000000);
-
-    cout << "Stop" << endl;
-    speed(STOP);
-    usleep(1000000);
+        usleep(1000000);
+        sendCAN(70, 'b');
+        usleep(1000000);
+        sendCAN(80, 'a');
+    }
 
 }
 
@@ -171,9 +121,8 @@ void justDrive(){
 void run(){
 
 	switch(mode){
-		/* // TESTING
 		case 1:
-			ImageProcessing.run();
+			//ImageProcessing.run();
 		break;
 
 		case 2:
@@ -181,13 +130,13 @@ void run(){
 		break;
 
 		case 3:
-			followCar();
+			//followCar();
 		break;
 
 		case 4:
-			crossing();
+			//crossing();
 		break;
-        */ // TESTING
+
 		case 5:
 			justDrive();
 		break;
@@ -199,16 +148,18 @@ void run(){
 }
 
 
-
 int main(){
     cout << "START"<<endl;
     startCAN();
     cout << "CAN started" << endl;
 
-	while(1){
+    while(1){ // Driving around
+        fetchInput();
 		updateMode();
 		run();
-	}
+	    //usleep(1000000); // TEMP
+
+    }
 
 return 1;
 }
