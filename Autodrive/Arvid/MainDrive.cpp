@@ -80,8 +80,8 @@ void followCar(){ // PANOS
 		// Follow road
 	}
 //Problems:
-//1. Setting up the scenario where one car can follow another
-//2. Avoiding objects. The car in front have to tell the car in the back?
+//1. Setting the mode.
+//2. Avoiding objects. The car in front have to tell the car in the back? Presume no obstacles...?
 }
 
 void crossing(){ // TODO HILLBERG
@@ -90,7 +90,7 @@ void crossing(){ // TODO HILLBERG
 
 	}
 	else{
-		// execute turn or go forward and the follow road again
+		// execute turn or go forward and then follow road again
 	}
 }
 
@@ -147,8 +147,13 @@ void run(){
 			justDrive();
 		break;
 
+		case 6:
+			sendCAN(00,'s'); // Something wrong. Stop Car
+		break;
+
 		default:
 			cout << "No mode" << endl;
+			mode = ERROR;
 	}
 
 }

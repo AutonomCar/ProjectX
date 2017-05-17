@@ -11,36 +11,36 @@
 #include <string>       //String handling
 #include <cstring>      // -||-
 #include <stdio.h>      // standard input / output functions
-#include <stdlib.h>
-#include <sstream>
-#include <fstream>
+#include <stdlib.h>		// needed for "system"
+#include <sstream>		// stringstream
+#include <fstream>		// file editing
 
 
 using namespace std;
 
-int fmu = 110; // front-middle ultrasound sensor
-int fru = 100; // front-right ultrasound sensor
-int sfu = 100; // side-front ultrasound sensor
-int sbu = 100; // side-back ultrasound sensor
-int lir = 0; // left ir sensor
-int rir = 0; // right ir sensor
+int fmu = 110; 	// front-middle ultrasound sensor
+int fru = 100; 	// front-right ultrasound sensor
+int sfu = 100; 	// side-front ultrasound sensor
+int sbu = 100; 	// side-back ultrasound sensor
+int lir = 0; 	// left ir sensor
+int rir = 0; 	// right ir sensor
 
 class Command{
 	//TODO
-	//Used for imageprocessing to work correctly.
+	//Used for imageprocessing to work correctly. ?
 };
 
+// TODO trim commennts and get rid of extra "cout"
 
-// initialize the CAN system
+
 void startCAN(){ // Initialize CAN-bus
 	system("sudo ip link set can0 up type can bitrate 500000");
 }
 
 
-//Converting int to hex
 template< typename T >
 string int_to_hex(T i)
-{
+{//Converting int to hex
 	stringstream stream;
 	stream << ""
 		//		<< std::setfill('0') << std::setw(sizeof(T) * 2)
@@ -51,33 +51,30 @@ string int_to_hex(T i)
 
 void sendCAN(int value, char action) { // value: the desired speed/angle (0-255), action: Forward, Backward, Stop, Angle
 	string str;
-	if (action == 'f') {// send speed
+	if (action == 'f') {// send speed forward
 		str = "cansend can0 140#01" + int_to_hex(value);
 	}
-	if (action == 'b') {// send speed
+	if (action == 'b') {// send speed backward
 		str = "cansend can0 140#00" + int_to_hex(value);
 	}
 	if (action == 's') {// STOP
 		str = "cansend can0 140#0200";
 	}
 	if (action == 'a') {// send angle
-		str = "cansend can0 150#02" + int_to_hex(value); // value max: 128?(0x80) min: 48(0x30) Limitation: the electric engine that steers
+		str = "cansend can0 150#02" + int_to_hex(value); // value max: 128?(0x80) min: 48(0x30) Limitation: the electric engine that steers // TODO update numbers
 	}
 
-    cout << action << endl;
+	cout << action << endl;
 
-	//cout << str.size() << endl;
-	//cout << str << endl;
-	char cmd[43];
+    char cmd[43]; // set size, just make sure it is large enough for the entire commandline
 	strcpy(cmd, str.c_str());
 
 	//cout << cmd << endl;
-	system(cmd);// Cmd linux command setSpeed action (forward,back,stop)
-
+	system(cmd);
 }
 
-
-int hexCharToInt(char x){
+/*// TODO remove, not needed anymore ?
+int hexCharToInt(char x){ //convert a hex-char to an int variable
 
     int y = x;
     if(y > 47 && y < 58)  //this covers 0-9
@@ -87,10 +84,11 @@ int hexCharToInt(char x){
 
     return y;
 }
+*/
 
-int processInput(int nn, char *data){ // n: the element to start iteration on, data: the array
+int processInput(int nn, char *data){ // n: the element to start iteration on, data: the array from file
     // update sensor data.
-    cout << "processInput()" << endl;
+    cout << "processInput()";
     cout << data << endl;
 
     char a = data[0];
@@ -100,7 +98,8 @@ int processInput(int nn, char *data){ // n: the element to start iteration on, d
     string error;
     int n = nn;
 
-    // iterate until relevant information is found, add to input data.
+    // iterate until relevant information is loaded, add to input data.
+
     while( (data[n] != 'x')&&(data[n] != 'q')&&(n<99) ){
         n++;
     }
@@ -110,7 +109,7 @@ int processInput(int nn, char *data){ // n: the element to start iteration on, d
     }
 
     n++;
-    while(data[n] != '-'){ // first number
+    while(data[n] != '-'){ // first number (id)
         nr = nr + data[n];
         n++;
     }
@@ -128,7 +127,7 @@ int processInput(int nn, char *data){ // n: the element to start iteration on, d
     }
 
     n++;
-    while(data[n] != '-'){ // fourth number
+    while(data[n] != '-'){ // fourth number (if number is negative(255) its a bad value)
         error = error + data[n];
         n++;
     }
@@ -142,7 +141,8 @@ int processInput(int nn, char *data){ // n: the element to start iteration on, d
 
     int value = y + (z*256);
 
-    if(err != 255){
+    if(err != 255){ // if number is negative its a bad value, disregard it
+    	//TODO update this to use the negative values for acceleration etc
 
         switch(x){
             case 101:
@@ -170,7 +170,7 @@ int processInput(int nn, char *data){ // n: the element to start iteration on, d
                 //cout << "sbu set." << endl;
                 break;
             default:
-                //cout << "bad switch number" << endl;
+                cout << "(sensors) bad id number" << endl;
                 break;
         }
     }
@@ -186,7 +186,7 @@ int processInput(int nn, char *data){ // n: the element to start iteration on, d
 int fetchInput(){
     //cout << "fetchInput()" << endl;
     system("cansend can0 200#0000"); // initiate fetch data
-    //for(int i = 0; i < 10000; i++){} // give the python fetch program some time
+    //for(int i = 0; i < 10000; i++){} // give the python fetch program some time?
 
     char data[100];
     fstream file;
@@ -194,7 +194,7 @@ int fetchInput(){
     file >> data;           // read from the file
     //cout << data << endl;
 
-    //file <<""<< endl;       // empty the file
+    //file <<""<< endl;       // empty the file, not needed? Python resets the data everytime
 
     file.close();
 
