@@ -11,12 +11,12 @@ using namespace std;
 
 
 int mode;
-int FOLLOW_ROAD = 1; 	// Follow the road using ImageProcessing
-int AVOID = 2;		// Pre coded route to avoid object op road
-int FOLLOW_CAR = 3;	// Follow car at set distance.
+int FOLLOW_ROAD = 1;	// Follow the road using ImageProcessing
+int AVOID = 2;			// Pre coded route to avoid object on road
+int FOLLOW_CAR = 3;		// Follow car at set distance.
 int CROSSING = 4;		// Manage an intersection
-int JUST_DRIVE = 5;	// Drive forward, turn when ecountering obstacles (roomba style)
-int ERROR = 6;		// Something is wrong. Stop Car Immediatly.
+int JUST_DRIVE = 5;		// Drive forward, turn when ecountering obstacles (roomba style)
+int ERROR = 6;			// Something is wrong. Stop Car Immediatly.
 
 
 void updateMode(){
@@ -96,22 +96,29 @@ void crossing(){
 */ // TESTING
 
 void justDrive(){
-    sendCAN(80, 'a');
-    sendCAN(70, 'f');
-    usleep(100000);
+	sendCAN(100, 'f');
 
-
-    if(fmu<100){
-        cout << "oh no! obstacle!!" << fmu <<endl;
-        sendCAN(00, 's');
-        usleep(1000000);
-        sendCAN(48, 'a');
-
-        usleep(1000000);
-        sendCAN(70, 'b');
-        usleep(1000000);
-        sendCAN(80, 'a');
-    }
+	if(50<fmu<100){
+		sendCAN(48, 'a'); // Turn Right //TODO
+	}
+	else if(fmu<30){
+		sendCAN(00, 's'); 	// Stop
+		usleep(100000); 	// 1/10 sec pause
+		sendCAN(100, 'b');	// Backwards
+		usleep(500000); 	// 1/2 sec pause
+		sendCAN(00, 's'), 	// Stop
+	}
+	else if (fru<30){
+		sendCAN(00, 's'); 	// Stop
+		usleep(100000); 	// 1/10 sec paus
+		sendCAN(80, 'a');	// turn left //TODO
+		sendCAN(100, 'b');	// Backwards
+		usleep(500000); 	// 1/2 sec pause
+		sendCAN(00, 's'; 	// Stop
+	}
+	else{
+		sendCAN(55, 'a');	// Turn Forward //TODO
+	}
 
 }
 
