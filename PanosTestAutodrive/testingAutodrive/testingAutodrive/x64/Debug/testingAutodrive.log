@@ -1,0 +1,52 @@
+﻿  Source.cpp
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\testingautodrive\maneuver.hpp(88): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\testingautodrive\maneuver.hpp(145): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\testingautodrive\maneuver.hpp(172): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\testingautodrive\parking.hpp(31): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\testingautodrive\parking.hpp(33): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\roadline.hpp(40): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\roadline.hpp(59): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\roadline.hpp(67): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\roadlinebuilder.hpp(19): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\roadlinebuilder.hpp(20): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\roadlinebuilder.hpp(112): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\linefollower.hpp(22): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\linefollower.hpp(23): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\linefollower.hpp(30): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\linefollower.hpp(31): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\linefollower.hpp(34): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\linefollower.hpp(63): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\linefollower.hpp(75): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\roadfollower.hpp(18): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\roadfollower.hpp(29): warning C4244: 'return': conversion from 'float' to 'int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\roadfollower.hpp(35): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\roadfollower.hpp(144): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\imageprocessor.hpp(17): warning C4005: '_DEBUG': macro redefinition
+  c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\imageprocessor.hpp(17): note: command-line arguments:  see previous definition of '_DEBUG'
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\imageprocessor.hpp(93): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\testingautodrive\overtaking.hpp(46): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\testingautodrive\navigation.hpp(64): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\testingautodrive\source.cpp(46): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\testingautodrive\source.cpp(48): warning C4804: '>': unsafe use of type 'bool' in operation
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\testingautodrive\source.cpp(50): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\testingautodrive\source.cpp(63): warning C4101: 'changingAngle': unreferenced local variable
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\util.hpp(46): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\linefollower.hpp(39): note: see reference to function template instantiation 'std::unique_ptr<Autodrive::roadlinebuilder,std::default_delete<_Ty>> Autodrive::make_unique<Autodrive::roadlinebuilder,Autodrive::POINT&,int&,int&>(Autodrive::POINT &,int &,int &)' being compiled
+          with
+          [
+              _Ty=Autodrive::roadlinebuilder
+          ]
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\util.hpp(46): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\imageprocessor.hpp(50): note: see reference to function template instantiation 'std::unique_ptr<Autodrive::roadfollower,std::default_delete<_Ty>> Autodrive::make_unique<Autodrive::roadfollower,cv::Mat&,float>(cv::Mat &,float &&)' being compiled
+          with
+          [
+              _Ty=Autodrive::roadfollower
+          ]
+  c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\imageprocessor\imageprocessor.hpp(25): note: see reference to class template instantiation 'std::unique_ptr<Autodrive::roadfollower,std::default_delete<_Ty>>' being compiled
+          with
+          [
+              _Ty=Autodrive::roadfollower
+          ]
+c:\users\p4nos\onedrive\dokument\visual studio 2015\projects\testingautodrive\testingautodrive\navigation.hpp(227): warning C4715: 'driving': not all control paths return a value
+  testingAutodrive.vcxproj -> C:\Users\p4nos\onedrive\dokument\visual studio 2015\Projects\testingAutodrive\x64\Debug\testingAutodrive.exe
+  testingAutodrive.vcxproj -> C:\Users\p4nos\onedrive\dokument\visual studio 2015\Projects\testingAutodrive\x64\Debug\testingAutodrive.pdb (Full PDB)
