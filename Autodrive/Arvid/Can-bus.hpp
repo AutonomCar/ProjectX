@@ -18,10 +18,10 @@
 
 using namespace std;
 
-int fmu = 0; // front-middle ultrasound sensor
-int fru = 0; // front-right ultrasound sensor
-int sfu = 0; // side-front ultrasound sensor
-int sbu = 0; // side-back ultrasound sensor
+int fmu = 110; // front-middle ultrasound sensor
+int fru = 100; // front-right ultrasound sensor
+int sfu = 100; // side-front ultrasound sensor
+int sbu = 100; // side-back ultrasound sensor
 int lir = 0; // left ir sensor
 int rir = 0; // right ir sensor
 
