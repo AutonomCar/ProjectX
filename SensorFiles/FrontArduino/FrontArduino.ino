@@ -1,4 +1,6 @@
 //*************************INITIATE CAN******************************
+int speedV[]={0,0};
+float timeKeeper=millis();
 #include <mcp_can.h>
 #include <SPI.h>
 
@@ -12,11 +14,11 @@ const byte frontUltAd = 101;
 const byte frontRUltAd = 102;
 const byte leftIRAd = 103;
 const byte rightIRAd = 104;
+const byte crossLineAd = 105;
 
 #define CAN0_INT 2                              // Set INT to pin 2
 MCP_CAN CAN0(10);                               // Set CS to pin 10
 //*******************************************************************
-/* NOT USED
 //************************INITIATE MPU9250***************************
 #include <MPU9250.h>
 #include <quaternionFilters.h>
@@ -27,7 +29,6 @@ const int intPinI2C = 12; //Can be changed to 2 and 3 as external interrupts
 
 MPU9250 myIMU;
 //*******************************************************************
-*/
 //*************************INITIATE RANGE SENSOR*********************
 const int frontTrigPin = 8;
 const int frontEchoPin = 9;
@@ -39,17 +40,15 @@ int front;
 int frontRight;
 //*******************************************************************
 //************************INITIATE IR SENSOR*************************
-const int leftIRPin=0;
-const int rightIRPin=1;
+const int leftIRPin = 0;
+const int rightIRPin = 1;
 int leftIR;
 int rightIR;
-const int threshValue=0;
-
+int crossLine = 0;
+const int threshValue = 0;
 //*******************************************************************
 //***************************SETUP***********************************
 void setup(){
-/*
-    NOT USED
 //************************SETUP MPU9250******************************
   Wire.begin();
   Serial.begin(115200);
@@ -99,9 +98,9 @@ void setup(){
     Serial.print(" I should be "); Serial.println(0x48, HEX);
 
     // Get magnetometer calibration from AK8963 ROM
-    myIMU.initAK8963(myIMU.factoryMagCalibration);
+      myIMU.initAK8963(myIMU.factoryMagCalibration);
     // Initialize device for active mode read of magnetometer
-    Serial.println("AK8963 initialized for active data mode....");
+      Serial.println("AK8963 initialized for active data mode....");
       Serial.println("Calibration values: ");
       Serial.print("X-Axis sensitivity adjustment value ");
       Serial.println(myIMU.factoryMagCalibration[0], 2);
@@ -110,10 +109,9 @@ void setup(){
       Serial.print("Z-Axis sensitivity adjustment value ");
       Serial.println(myIMU.factoryMagCalibration[2], 2);
 
-}*/
+}
 //*******************************************************************
 //***************************SETUP CAN*******************************
-  
   // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
   if(CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_16MHZ) == CAN_OK)
     Serial.println("MCP2515 Initialized Successfully!");
@@ -125,7 +123,6 @@ void setup(){
   pinMode(CAN0_INT, INPUT);                     // Configuring pin for /INT input
   
   Serial.println("MCP2515 Library Receive Example...");
-  
 //*******************************************************************
 //**************************SETUP RANGE SENSOR***********************
   pinMode(frontTrigPin, OUTPUT);
@@ -140,63 +137,77 @@ void setup(){
 }
 //***************************MAIN PROGRAM****************************
 void loop() {
-/*
+
 //**********************READ MPU 9250 DATA*********************
   // If intPin goes high, all data registers have new data
   // On interrupt, check if data ready interrupt
   if (myIMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {
     updateData();
   }
-*/
 
-  //front = measure(frontTrigPin, frontEchoPin);
-  //frontRight = measure(frontRightTrigPin, frontRightEchoPin);  
+/*
+  //Testing sending data between every sensor read to speed up updating to RPi
+  front = measure(frontTrigPin,frontEchoPin);
+  if(!digitalRead(CAN0_INT)){
+    sendData();
+  }
+  
+  frontRight = measure(frontRightTrigPin, frontRightEchoPin); 
   if(analogRead(leftIRPin) > threshValue){
     leftIR = 1;
   } else {
     leftIR = 0;
   }
+  
   if(analogRead(rightIRPin) > threshValue){
     rightIR = 1;
   } else {
     rightIR = 0;
   }
-
-/********NO USE************************
-  timeKeeper = millis() - timeKeeper;
-  speedV[0]+=(timeKeeper*myIMU.ax*9.81)/1000;
-  speedV[1]+=(timeKeeper*myIMU.ay*9.81)/1000;
-  Serial.print("Speed X-Axis : ");
-  Serial.println(speedV[0]);
-  Serial.print("Speed Y-Axis : ");
-  Serial.println(speedV[1]);  
-  delay(100);
-*/  
- 
+  if(leftIR == 1 && rightIR == 1){
+    crossLine = 1;
+  }
   if(!digitalRead(CAN0_INT)){
-    Serial.println("Successfull read");
-    readCan();
-    if(rxId == 0x200){
-      sendCan(front, frontUltAd);
-      Serial.println(front);
-      sendCan(frontRight, frontRUltAd);
-      Serial.println(frontRight);
-      sendCan(leftIR, leftIRAd);
-      Serial.println(leftIR);
-      sendCan(rightIR, rightIRAd);
-      Serial.println(rightIR);
-    }
+    sendData();
   }  
+*/
+  timeKeeper = (millis() - timeKeeper)/1000;
+  speedV[0]=(myIMU.ax*9.81);
+  speedV[1]=(myIMU.ay*9.81);
+  Serial.print("Speed X-Axis : ");
+  Serial.println(speedV[0]*timeKeeper);
+  Serial.print("Speed Y-Axis : ");
+  Serial.println(speedV[1]*timeKeeper);
+  Serial.println((int)myIMU.gz);
+  delay(100);
+  
 
 }
 //*******************************************************************
 //*********************CAN FUNCTIONS*********************************
+void sendData(){
+  
+  Serial.println("Successfull read");
+  readCan();
+  if(rxId == 0x200){
+    sendCan(front, frontUltAd);
+    Serial.println(front);
+    sendCan(frontRight, frontRUltAd);
+    Serial.println(frontRight);
+    sendCan(leftIR, leftIRAd);
+    Serial.println(leftIR);
+    sendCan(rightIR, rightIRAd);
+    Serial.println(rightIR);
+    sendCan(crossLine,crossLineAd);
+    crossLine = 0;
+  }
+
+}
 void sendCan(int value, byte adress){  
   byte data[sizeMsg] = {0,0,0};
 
-  //To do, check if necessary
-  //Simplifying having to use signed logic
   Serial.println(value);
+  //Simplifying having to use signed logic
   if(value<0){
     value = value*-1;
     data[sizeMsg-1]=-1;
@@ -250,7 +261,6 @@ void readCan (){
 }
 //*******************************************************************
 //****************************MPU 9250 FUNCTIONS*********************
-/* NOT USED
 void updateData (){
 
     myIMU.readAccelData(myIMU.accelCount);  // Read the x/y/z adc values
@@ -293,7 +303,6 @@ void updateData (){
                            myIMU.gy * DEG_TO_RAD, myIMU.gz * DEG_TO_RAD, myIMU.my,
                            myIMU.mx, myIMU.mz, myIMU.deltat);
 }
-*/
 //*******************************************************************
 //***************************ULTRASONIC FUNCTIONS********************
 int measure(int trigPin, int echoPin){
