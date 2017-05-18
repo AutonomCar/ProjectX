@@ -59,15 +59,6 @@ void loop() {
      *  }
      */
   }
-//
-//  for(int i=0; i<aSize; i++){
-//    
-//    backSideArray[i]=measure(backSideTrigPin,backSideEchoPin);
-//    frontSideArray[i]=measure(frontSideTrigPin,frontSideEchoPin);
-//  }
-//  backSide = sortArray(backSideArray);
-//  frontSide = sortArray(frontSideArray);
-  
 }
 //*****************CAN FUNCTIONS*********************************
 //*****************TO DO, SET WHAT DATATYPE TO SEND***************
@@ -159,19 +150,4 @@ int microsecondsToCentimeters(int microseconds){
   // object we take half of the distance travelled.
   return (microseconds / 29 / 2);
 }
-//Sorts and returns the median value of the array acting as an median filter.
-//May not be used due to slowing down the system
-//int sortArray (int a[]){
-//  
-//  int b[aSize];
-//  int temp;
-//  
-//  for(int i=0; i<aSize-1; i++){
-//    for(int j=aSize; j<aSize; j++){
-//      if(a[i]<b[j])
-//        temp = a[i]; a[i]=b[j]; b[j]=temp;
-//    }
-//  }
-//  return a[2];
-//}
 //***************************************************************

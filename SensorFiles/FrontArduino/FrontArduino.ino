@@ -14,6 +14,7 @@ const byte rightIRAd = 104;
 #define CAN0_INT 2                              // Set INT to pin 2
 MCP_CAN CAN0(10);                               // Set CS to pin 10
 //*******************************************************************
+/* NOT USED
 //************************INITIATE MPU9250***************************
 #include <MPU9250.h>
 #include <quaternionFilters.h>
@@ -24,6 +25,7 @@ const int intPinI2C = 12; //Can be changed to 2 and 3 as external interrupts
 
 MPU9250 myIMU;
 //*******************************************************************
+*/
 //*************************INITIATE RANGE SENSOR*********************
 const int frontTrigPin = 8;
 const int frontEchoPin = 9;
@@ -40,9 +42,13 @@ const int leftIRPin=0;
 const int rightIRPin=1;
 int leftIR;
 int rightIR;
+const int threshValue=0;
+
 //*******************************************************************
 //***************************SETUP***********************************
-void setup() {
+void setup(){
+/*
+    NOT USED
 //************************SETUP MPU9250******************************
   Wire.begin();
   Serial.begin(115200);
@@ -61,7 +67,7 @@ void setup() {
     Serial.println("MPU9250 is online...");
 
 
-/*  // Start by performing self test and reporting values
+    // Start by performing self test and reporting values
     myIMU.MPU9250SelfTest(myIMU.selfTest);
 
     Serial.print("x-axis self test: acceleration trim within : ");
@@ -76,7 +82,7 @@ void setup() {
     Serial.print(myIMU.selfTest[4], 1); Serial.println("% of factory value");
     Serial.print("z-axis self test: gyration trim within : ");
     Serial.print(myIMU.selfTest[5], 1); Serial.println("% of factory value");
-*/
+
     // Calibrate gyro and accelerometers, load biases in bias registers
     myIMU.calibrateMPU9250(myIMU.gyroBias, myIMU.accelBias);
 
@@ -95,7 +101,6 @@ void setup() {
     myIMU.initAK8963(myIMU.factoryMagCalibration);
     // Initialize device for active mode read of magnetometer
     Serial.println("AK8963 initialized for active data mode....");
-#ifdef debug9250
       Serial.println("Calibration values: ");
       Serial.print("X-Axis sensitivity adjustment value ");
       Serial.println(myIMU.factoryMagCalibration[0], 2);
@@ -103,8 +108,8 @@ void setup() {
       Serial.println(myIMU.factoryMagCalibration[1], 2);
       Serial.print("Z-Axis sensitivity adjustment value ");
       Serial.println(myIMU.factoryMagCalibration[2], 2);
-#endif //debug9250
-}
+
+}*/
 //*******************************************************************
 //***************************SETUP CAN*******************************
   
@@ -126,38 +131,40 @@ void setup() {
   pinMode(frontEchoPin, INPUT);
   pinMode(frontRightTrigPin, OUTPUT);
   pinMode(frontRightEchoPin, INPUT);
-
 //*******************************************************************
 //************************SETUP IR SENSOR****************************
   pinMode(leftIRPin, INPUT);
   pinMode(rightIRPin, INPUT);
-
 //*******************************************************************
 }
 //***************************MAIN PROGRAM****************************
 void loop() {
-
+/*
 //**********************READ MPU 9250 DATA*********************
   // If intPin goes high, all data registers have new data
   // On interrupt, check if data ready interrupt
   if (myIMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {
     updateData();
   }
-  
-  //front = measure(frontTrigPin, frontEchoPin);
-  //frontRight = measure(frontRightTrigPin, frontRightEchoPin);
-  
-  //leftIR = analogRead(leftIRPin);
-  //rightIR = analogRead(rightIRPin);
+*/
 
-  myIMU.readAccelData(myIMU.accelCount);
-  Serial.print(" Acceleration in X-Axis : ");
-  Serial.println(myIMU.ax);
-  Serial.print(" Acceleration in Y-Axis : ");
-  Serial.println(myIMU.ay);
-  Serial.print(" Turning round Z-Axis : ");
-  Serial.println(myIMU.gz);
+  //front = measure(frontTrigPin, frontEchoPin);
+  //frontRight = measure(frontRightTrigPin, frontRightEchoPin);  
   
+  leftIR = analogRead(leftIRPin);
+  rightIR = analogRead(rightIRPin);
+
+/********NO USE************************
+  timeKeeper = millis() - timeKeeper;
+  speedV[0]+=(timeKeeper*myIMU.ax*9.81)/1000;
+  speedV[1]+=(timeKeeper*myIMU.ay*9.81)/1000;
+  Serial.print("Speed X-Axis : ");
+  Serial.println(speedV[0]);
+  Serial.print("Speed Y-Axis : ");
+  Serial.println(speedV[1]);  
+  delay(100);
+*/  
+ 
   if(!digitalRead(CAN0_INT)){
     Serial.println("Successfull read");
     readCan();
@@ -166,10 +173,10 @@ void loop() {
       Serial.println(front);
       sendCan(frontRight, frontRUltAd);
       Serial.println(frontRight);
-//      sendCan(700, leftIRAd);
-//      Serial.println(700);
-//      sendCan(800, rightIRAd);
-//      Serial.println(800);
+      sendCan(700, leftIRAd);
+      Serial.println(700);
+      sendCan(800, rightIRAd);
+      Serial.println(800);
     }
   }  
 
@@ -193,12 +200,15 @@ void sendCan(int value, byte adress){
     data[i] = (byte) (value & 0xFF);
     value = value >> 8;
   }
-  
+/* 
+ 
+  //Debug data sent on CAN-bus  
   Serial.println(adress);
   Serial.println(data[0]);
   Serial.println(data[1]);
   Serial.println(data[2]);
-  // send data:  ID = 0x100, Standard CAN Frame, Data length = 8 bytes, 'data' = array of data bytes to send
+  */
+  // send data format:  ID = adress, Standard CAN Frame, Data length = 8 bytes, 'data' = array of data bytes to send
   byte sndStat = CAN0.sendMsgBuf(adress, 0, sizeMsg, data);
   
   if(sndStat == CAN_OK){
@@ -232,6 +242,7 @@ void readCan (){
 }
 //*******************************************************************
 //****************************MPU 9250 FUNCTIONS*********************
+/* NOT USED
 void updateData (){
 
     myIMU.readAccelData(myIMU.accelCount);  // Read the x/y/z adc values
@@ -252,11 +263,9 @@ void updateData (){
     //myIMU.gy = (float)myIMU.gyroCount[1] * myIMU.gRes;
     myIMU.gz = (float)myIMU.gyroCount[2] * myIMU.gRes;
 
-    /*
-     * myIMU.tempCount = myIMU.readTempData();  // Read the adc values
-     * myIMU.temperature = ((float) myIMU.tempCount) / 333.87 + 21.0;  // Temperature in degrees Centigrade
-     * 
-     */
+    
+      myIMU.tempCount = myIMU.readTempData();  // Read the adc values
+      myIMU.temperature = ((float) myIMU.tempCount) / 333.87 + 21.0;  // Temperature in degrees Centigrade
 
     //**************MAY HAVE TO MOVE****************
     // Must be called before updating quaternions!
@@ -276,11 +285,12 @@ void updateData (){
                            myIMU.gy * DEG_TO_RAD, myIMU.gz * DEG_TO_RAD, myIMU.my,
                            myIMU.mx, myIMU.mz, myIMU.deltat);
 }
+*/
 //*******************************************************************
 //***************************ULTRASONIC FUNCTIONS********************
 int measure(int trigPin, int echoPin){
   
-  int duration, cm;
+  int duration;
 
   // The sensor is triggered by a HIGH pulse of 10 or more microseconds.
   // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
@@ -298,15 +308,7 @@ int measure(int trigPin, int echoPin){
   duration = pulseIn(echoPin, HIGH);
 
   //Convert the time into a distance
-  cm = microsecondsToCentimeters(duration);
-  if(cm<0){
-    cm = measure(trigPin, echoPin);
-    count++;
-    if(cm<0){
-      return -1;
-    }
-  }
-  return cm;
+  return microsecondsToCentimeters(duration);
 }
 int microsecondsToCentimeters(int microseconds){  
   // The speed of sound is 340 m/s or 29 microseconds per centimeter.
@@ -314,19 +316,4 @@ int microsecondsToCentimeters(int microseconds){
   // object we take half of the distance travelled.
   return (microseconds / 29 / 2);
 }
-////Sorts and returns the median value of the array acting as an median filter.
-////May not be used due to slowing down the system
-//int sortArray (int a[]){  
-//  
-//  int b[aSize];
-//  int temp;
-//  
-//  for(int i=0; i<aSize-1; i++){
-//    for(int j=aSize; j<aSize; j++){
-//      if(a[i]<b[j])
-//        temp = a[i]; a[i]=b[j]; b[j]=temp;
-//    }
-//  }
-//  return a[2];
-//}
 //*******************************************************************
