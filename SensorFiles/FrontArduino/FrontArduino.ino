@@ -6,6 +6,8 @@ long unsigned int rxId;
 unsigned char len = 0;
 unsigned char rxBuf[8];
 const int sizeMsg = 3;                      // Sets the ammount of bytes sent on the CAN
+
+//Defining adresses for CAN bus that RPi will listen for
 const byte frontUltAd = 101;
 const byte frontRUltAd = 102;
 const byte leftIRAd = 103;
@@ -32,7 +34,6 @@ const int frontEchoPin = 9;
 const int frontRightTrigPin = 5;
 const int frontRightEchoPin = 6;
 const int aSize = 5;
-int count = 0;
 
 int front;
 int frontRight;
@@ -181,9 +182,9 @@ void loop() {
       sendCan(frontRight, frontRUltAd);
       Serial.println(frontRight);
       sendCan(leftIR, leftIRAd);
-      Serial.println(700);
+      Serial.println(leftIR);
       sendCan(rightIR, rightIRAd);
-      Serial.println(800);
+      Serial.println(rightIR);
     }
   }  
 

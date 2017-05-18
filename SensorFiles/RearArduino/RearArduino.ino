@@ -5,9 +5,11 @@
 long unsigned int rxId;
 unsigned char len = 0;
 unsigned char rxBuf[8];
-const int sizeMsg = 3;
-const byte backSideAd = 0x214;
-const byte frontSideAd = 0x215;
+const int sizeMsg = 3;        // Sets the ammount of bytes sent on the CAN
+
+//Defining adresses for CAN bus that RPi will listen for
+const byte backSideAd = 105;
+const byte frontSideAd = 106;
 
 #define CAN0_INT 2                              // Set INT to pin 2
 MCP_CAN CAN0(10);                               // Set CS to pin 10
@@ -17,8 +19,6 @@ const int backSideTrigPin = 5;
 const int backSideEchoPin = 6;
 const int frontSideTrigPin = 8;
 const int frontSideEchoPin = 9;
-const int aSize = 5;
-int count = 0;
 
 int backSide;
 int frontSide;
@@ -49,15 +49,16 @@ void setup() {
 //***************************MAIN PROGRAM*************************
 void loop() {
 
-  if(!digitalRead(CAN0_INT) && rxId==0x200){
-    /*
-     * if(canMessage==ultrasonicBackSide){
-     *  sendCan(measure(backSideTrigPin,backSideEchoPin));
-     *  }
-     *  else if(canMessage==ultrasonicFrontSide){
-     *    sendCan(measure(frontSideTrigPin,frontSideEchoPin));
-     *  }
-     */
+  backSide = measure(backSideTrigPin,backSideEchoPin);
+  frontSide = measure(frontSideTrigPin,frontSideEchoPin);
+
+  if(!digitalRead(CAN0_INT)){
+    Serial.println("Sucessfull read");
+    readCan();
+    if(rxId == 0x200){
+      sendCan(backSide,backSideAd);
+      sendCan(frontSide,frontSideAd);
+    } 
   }
 }
 //*****************CAN FUNCTIONS*********************************
@@ -115,7 +116,7 @@ void readCan (){
 //***************************ULTRASONIC FUNCTIONS****************
 int measure(int trigPin, int echoPin){
   
-  int duration, cm;
+  int duration;
 
   // The sensor is triggered by a HIGH pulse of 10 or more microseconds.
   // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
@@ -133,16 +134,7 @@ int measure(int trigPin, int echoPin){
   duration = pulseIn(echoPin, HIGH);
 
   //Convert the time into a distance
-  cm = microsecondsToCentimeters(duration);
-  if(cm<0){
-    cm = measure(trigPin, echoPin);
-    count++;
-    if(count==5){
-      count = 0;
-      return -1;
-    }
-  }
-  return cm;
+  return microsecondsToCentimeters(duration);
 }
 int microsecondsToCentimeters(int microseconds){  
   // The speed of sound is 340 m/s or 29 microseconds per centimeter.
