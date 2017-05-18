@@ -145,7 +145,7 @@ void loop() {
     updateData();
   }
 
-/*
+
   //Testing sending data between every sensor read to speed up updating to RPi
   front = measure(frontTrigPin,frontEchoPin);
   if(!digitalRead(CAN0_INT)){
@@ -170,7 +170,7 @@ void loop() {
   if(!digitalRead(CAN0_INT)){
     sendData();
   }  
-*/
+/* ******* MAYBE SOLVABLE******************
   timeKeeper = (millis() - timeKeeper)/1000;
   speedV[0]=(myIMU.ax*9.81);
   speedV[1]=(myIMU.ay*9.81);
@@ -178,10 +178,10 @@ void loop() {
   Serial.println(speedV[0]*timeKeeper);
   Serial.print("Speed Y-Axis : ");
   Serial.println(speedV[1]*timeKeeper);
-  Serial.println((int)myIMU.gz);
+  Serial.println((int)myIMU.gz*(timeKeeper));
   delay(100);
   
-
+*/
 }
 //*******************************************************************
 //*********************CAN FUNCTIONS*********************************

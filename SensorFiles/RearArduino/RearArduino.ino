@@ -8,8 +8,8 @@ unsigned char rxBuf[8];
 const int sizeMsg = 3;        // Sets the ammount of bytes sent on the CAN
 
 //Defining adresses for CAN bus that RPi will listen for
-const byte backSideAd = 105;
-const byte frontSideAd = 106;
+const byte backSideAd = 106;
+const byte frontSideAd = 107;
 
 #define CAN0_INT 2                              // Set INT to pin 2
 MCP_CAN CAN0(10);                               // Set CS to pin 10
