@@ -150,9 +150,16 @@ void loop() {
 
   //front = measure(frontTrigPin, frontEchoPin);
   //frontRight = measure(frontRightTrigPin, frontRightEchoPin);  
-  
-  leftIR = analogRead(leftIRPin);
-  rightIR = analogRead(rightIRPin);
+  if(analogRead(leftIRPin) > threshValue){
+    leftIR = 1;
+  } else {
+    leftIR = 0;
+  }
+  if(analogRead(rightIRPin) > threshValue){
+    rightIR = 1;
+  } else {
+    rightIR = 0;
+  }
 
 /********NO USE************************
   timeKeeper = millis() - timeKeeper;
@@ -173,9 +180,9 @@ void loop() {
       Serial.println(front);
       sendCan(frontRight, frontRUltAd);
       Serial.println(frontRight);
-      sendCan(700, leftIRAd);
+      sendCan(leftIR, leftIRAd);
       Serial.println(700);
-      sendCan(800, rightIRAd);
+      sendCan(rightIR, rightIRAd);
       Serial.println(800);
     }
   }  
