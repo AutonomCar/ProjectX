@@ -48,6 +48,7 @@ void setup() {
   pinMode(frontSideTrigPin, OUTPUT);
   pinMode(frontSideEchoPin, INPUT);
 //***************************************************************
+// Wait until RPI sends message on CAN-bus
   while(wait==true){
     if(!digitalRead(CAN0_INT)){
       wait==false;
@@ -92,11 +93,11 @@ void sendCan(int value, byte adress){
   // send data:  ID = 0x100, Standard CAN Frame, Data length = 8 bytes, 'data' = array of data bytes to send
   byte sndStat = CAN0.sendMsgBuf(adress, 0, sizeMsg, data);
   
-  if(sndStat == CAN_OK){
-    Serial.println("Message Sent Successfully!");
-  } else {
-    Serial.println("Error Sending Message...");
-  }
+//  if(sndStat == CAN_OK){
+//    Serial.println("Message Sent Successfully!");
+//  } else {
+//    Serial.println("Error Sending Message...");
+//  }
 }
 void readCan (){
     
