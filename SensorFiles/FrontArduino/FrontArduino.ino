@@ -141,13 +141,13 @@ void setup(){
   pinMode(leftIRPin, INPUT);
   pinMode(rightIRPin, INPUT);
 //*******************************************************************
-//
-//  while(wait==true){
-//    if(!digitalRead(CAN0_INT)){
-//      wait==false;
-//      break;
-//    }
-//  }
+// Wait until RPI sends message on CAN-bus
+  while(wait==true){
+    if(!digitalRead(CAN0_INT)){
+      wait==false;
+      break;
+    }
+  }
 }
 //***************************MAIN PROGRAM****************************
 void loop() { 
@@ -160,36 +160,41 @@ void loop() {
   }
 */
   //Testing sending data between every sensor read to speed up updating to RPi
-//front = measure(frontTrigPin,frontEchoPin);
-//  if(front<=30){
-//    Serial.println("STOP");
-//    sendCan(2,motoAdd);
-//  }
-  Serial.println(analogRead(leftIRPin));
-//  frontRight = measure(frontRightTrigPin, frontRightEchoPin); 
-//  if(analogRead(leftIRPin) > threshValue){
-//    leftIR = 1;
-//  } else {
-//    leftIR = 0;
-//  }
-//  
-//  if(analogRead(rightIRPin) > threshValue){
-//    rightIR = 1;
-//  } else {
-//    rightIR = 0;
-//  }
-//  if(leftIR == 1 && rightIR == 1){
-//    crossLine = 1;
-//  }
-  /*
+front = measure(frontTrigPin,frontEchoPin);
+frontRight = measure(frontRightTrigPin, frontRightEchoPin); 
+
+  if(front<=30){
+    Serial.println("STOP");
+    sendCan(2,motoAdd);
+  }
+  //Serial.println(analogRead(leftIRPin));
+  //Serial.println(analogRead(rightIRPin));
+  //Serial.println(front);
+  //Serial.println(frontRight);
+
+  if(analogRead(leftIRPin) > threshValue){
+    leftIR = 1;
+  } else {
+    leftIR = 0;
+  }
+  
+  if(analogRead(rightIRPin) > threshValue){
+    rightIR = 1;
+  } else {
+    rightIR = 0;
+  }
+  if(leftIR == 1 && rightIR == 1){
+    crossLine = 1;
+  }
+  
   count++;
   if(count==25){
     sendData();
     count=0;
   }
-  */
+  
 /* ******* MAYBE SOLVABLE******************
-  timeKeeper = (millis() - timeKeeper)/1000;
+  timeKeeper = (millis() - timeKeeper);
   speedV[0]=(myIMU.ax*9.81);
   speedV[1]=(myIMU.ay*9.81);
   Serial.print("Speed X-Axis : ");
@@ -205,25 +210,21 @@ void loop() {
 //*********************CAN FUNCTIONS*********************************
 void sendData(){
   
-  //readCan();
- // if(rxId == 0x200){
     sendCan(front, frontUltAd);
-    Serial.println(front);
+    //Serial.println(front);
     sendCan(frontRight, frontRUltAd);
-    Serial.println(frontRight);
+    //Serial.println(frontRight);
     sendCan(leftIR, leftIRAd);
-    Serial.println(leftIR);
+    //Serial.println(leftIR);
     sendCan(rightIR, rightIRAd);
-    Serial.println(rightIR);
+    //Serial.println(rightIR);
     sendCan(crossLine,crossLineAd);
     crossLine = 0;
- // }
-
 }
 void sendCan(int value, byte adress){  
   byte data[sizeMsg] = {0,0,0};
 
-  Serial.println(value);
+  //Serial.println(value);
   //Simplifying having to use signed logic
   if(value<0){
     value = value*-1;
@@ -236,22 +237,21 @@ void sendCan(int value, byte adress){
     data[i] = (byte) (value & 0xFF);
     value = value >> 8;
   }
-/* 
- 
+/*
   //Debug data sent on CAN-bus  
   Serial.println(adress);
   Serial.println(data[0]);
   Serial.println(data[1]);
   Serial.println(data[2]);
-  */
-  // send data format:  ID = adress, Standard CAN Frame, Data length = 8 bytes, 'data' = array of data bytes to send
+*/
+  // Send data format:  ID = adress, Standard CAN Frame, Data length = 8 bytes, 'data' = array of data bytes to send
   byte sndStat = CAN0.sendMsgBuf(adress, 0, sizeMsg, data);
   
-  if(sndStat == CAN_OK){
-    Serial.println("Message Sent Successfully!");
-  } else {
-    Serial.println("Error Sending Message...");
-  }
+//  if(sndStat == CAN_OK){
+//    Serial.println("Message Sent Successfully!");
+//  } else {
+//    Serial.println("Error Sending Message...");
+//  }
 }
 //***************** TO DO, MAYBE MOVE FUNCTION AND CALL sendCan()*****************
 void readCan (){

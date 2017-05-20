@@ -1,3 +1,5 @@
+int count = 0;
+boolean wait = true;
 //*************************INITIATE CAN****************************
 #include <mcp_can.h>
 #include <SPI.h>
@@ -24,6 +26,8 @@ int backSide;
 int frontSide;
 //****************************************************************
 void setup() { 
+
+  Serial.begin(115200);
 //***************************SETUP CAN****************************
   // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
   if(CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_16MHZ) == CAN_OK)
@@ -43,26 +47,33 @@ void setup() {
   pinMode(backSideEchoPin, INPUT);
   pinMode(frontSideTrigPin, OUTPUT);
   pinMode(frontSideEchoPin, INPUT);
-
 //***************************************************************
+  while(wait==true){
+    if(!digitalRead(CAN0_INT)){
+      wait==false;
+      break;
+    }
+  }
 }
 //***************************MAIN PROGRAM*************************
 void loop() {
 
   backSide = measure(backSideTrigPin,backSideEchoPin);
   frontSide = measure(frontSideTrigPin,frontSideEchoPin);
-
-  if(!digitalRead(CAN0_INT)){
-    Serial.println("Sucessfull read");
-    readCan();
-    if(rxId == 0x200){
-      sendCan(backSide,backSideAd);
-      sendCan(frontSide,frontSideAd);
-    } 
+  
+  count++;
+  if(count==25){
+    sendData();
+    count=0;
   }
+
 }
 //*****************CAN FUNCTIONS*********************************
-//*****************TO DO, SET WHAT DATATYPE TO SEND***************
+void sendData(){
+  
+    sendCan(backSide,backSideAd);
+    sendCan(frontSide,frontSideAd);
+}
 void sendCan(int value, byte adress){  
   byte data[sizeMsg];
   
@@ -87,7 +98,6 @@ void sendCan(int value, byte adress){
     Serial.println("Error Sending Message...");
   }
 }
-//***************** TO DO, MAYBE MOVE FUNCTION AND CALL sendCan*****************
 void readCan (){
     
     CAN0.readMsgBuf(&rxId, &len, rxBuf);      // Read data: len = data length, buf = data byte(s)
