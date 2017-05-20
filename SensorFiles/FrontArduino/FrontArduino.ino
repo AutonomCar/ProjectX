@@ -1,3 +1,5 @@
+boolean wait = true;
+int count = 0;
 //*************************INITIATE CAN******************************
 int speedV[]={0,0};
 float timeKeeper=millis();
@@ -15,10 +17,12 @@ const byte frontRUltAd = 102;
 const byte leftIRAd = 103;
 const byte rightIRAd = 104;
 const byte crossLineAd = 105;
+const byte motoAdd = 140;
 
 #define CAN0_INT 2                              // Set INT to pin 2
 MCP_CAN CAN0(10);                               // Set CS to pin 10
 //*******************************************************************
+/*
 //************************INITIATE MPU9250***************************
 #include <MPU9250.h>
 #include <quaternionFilters.h>
@@ -29,6 +33,7 @@ const int intPinI2C = 12; //Can be changed to 2 and 3 as external interrupts
 
 MPU9250 myIMU;
 //*******************************************************************
+*/
 //*************************INITIATE RANGE SENSOR*********************
 const int frontTrigPin = 8;
 const int frontEchoPin = 9;
@@ -49,9 +54,10 @@ const int threshValue = 0;
 //*******************************************************************
 //***************************SETUP***********************************
 void setup(){
+  Serial.begin(115200);
+/*
 //************************SETUP MPU9250******************************
   Wire.begin();
-  Serial.begin(115200);
 
   //Set up the interrupt pin, its set as active high, push-pull
   pinMode(intPinI2C, INPUT);
@@ -110,6 +116,7 @@ void setup(){
       Serial.println(myIMU.factoryMagCalibration[2], 2);
 
 }
+*/
 //*******************************************************************
 //***************************SETUP CAN*******************************
   // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
@@ -134,42 +141,53 @@ void setup(){
   pinMode(leftIRPin, INPUT);
   pinMode(rightIRPin, INPUT);
 //*******************************************************************
+//
+//  while(wait==true){
+//    if(!digitalRead(CAN0_INT)){
+//      wait==false;
+//      break;
+//    }
+//  }
 }
 //***************************MAIN PROGRAM****************************
-void loop() {
-
+void loop() { 
+/*
 //**********************READ MPU 9250 DATA*********************
   // If intPin goes high, all data registers have new data
   // On interrupt, check if data ready interrupt
   if (myIMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {
     updateData();
   }
-
-
+*/
   //Testing sending data between every sensor read to speed up updating to RPi
-  front = measure(frontTrigPin,frontEchoPin);
-  if(!digitalRead(CAN0_INT)){
+//front = measure(frontTrigPin,frontEchoPin);
+//  if(front<=30){
+//    Serial.println("STOP");
+//    sendCan(2,motoAdd);
+//  }
+  Serial.println(analogRead(leftIRPin));
+//  frontRight = measure(frontRightTrigPin, frontRightEchoPin); 
+//  if(analogRead(leftIRPin) > threshValue){
+//    leftIR = 1;
+//  } else {
+//    leftIR = 0;
+//  }
+//  
+//  if(analogRead(rightIRPin) > threshValue){
+//    rightIR = 1;
+//  } else {
+//    rightIR = 0;
+//  }
+//  if(leftIR == 1 && rightIR == 1){
+//    crossLine = 1;
+//  }
+  /*
+  count++;
+  if(count==25){
     sendData();
+    count=0;
   }
-  
-  frontRight = measure(frontRightTrigPin, frontRightEchoPin); 
-  if(analogRead(leftIRPin) > threshValue){
-    leftIR = 1;
-  } else {
-    leftIR = 0;
-  }
-  
-  if(analogRead(rightIRPin) > threshValue){
-    rightIR = 1;
-  } else {
-    rightIR = 0;
-  }
-  if(leftIR == 1 && rightIR == 1){
-    crossLine = 1;
-  }
-  if(!digitalRead(CAN0_INT)){
-    sendData();
-  }  
+  */
 /* ******* MAYBE SOLVABLE******************
   timeKeeper = (millis() - timeKeeper)/1000;
   speedV[0]=(myIMU.ax*9.81);
@@ -187,9 +205,8 @@ void loop() {
 //*********************CAN FUNCTIONS*********************************
 void sendData(){
   
-  Serial.println("Successfull read");
-  readCan();
-  if(rxId == 0x200){
+  //readCan();
+ // if(rxId == 0x200){
     sendCan(front, frontUltAd);
     Serial.println(front);
     sendCan(frontRight, frontRUltAd);
@@ -200,7 +217,7 @@ void sendData(){
     Serial.println(rightIR);
     sendCan(crossLine,crossLineAd);
     crossLine = 0;
-  }
+ // }
 
 }
 void sendCan(int value, byte adress){  
@@ -260,6 +277,7 @@ void readCan (){
     //Serial.println();
 }
 //*******************************************************************
+/*
 //****************************MPU 9250 FUNCTIONS*********************
 void updateData (){
 
@@ -304,6 +322,7 @@ void updateData (){
                            myIMU.mx, myIMU.mz, myIMU.deltat);
 }
 //*******************************************************************
+*/
 //***************************ULTRASONIC FUNCTIONS********************
 int measure(int trigPin, int echoPin){
   
