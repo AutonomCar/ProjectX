@@ -50,7 +50,7 @@ const int rightIRPin = 0;
 int leftIR;
 int rightIR;
 int crossLine = 0;
-const int threshValue = 0;
+const int threshValue = 100;
 //*******************************************************************
 //***************************SETUP***********************************
 void setup(){
@@ -143,12 +143,12 @@ void setup(){
 //*******************************************************************
 // Wait until RPI sends message on CAN-bus
 // This is to ensure that the RPi is ready to receive data
-//  while(wait==true){
-//    if(!digitalRead(CAN0_INT)){
-//      wait==false;
-//      break;
-//    }
-//  }
+  while(wait==true){
+    if(!digitalRead(CAN0_INT)){
+      wait==false;
+      break;
+    }
+  }
 }
 //***************************MAIN PROGRAM****************************
 void loop() { 
@@ -161,14 +161,14 @@ void loop() {
   }
 */
   //Testing sending data between every sensor read to speed up updating to RPi
-//front = measure(frontTrigPin,frontEchoPin);
-//frontRight = measure(frontRightTrigPin, frontRightEchoPin); 
-//
-//  if(front<=30){
-//    Serial.println("STOP");
-//    sendCan(2,motoAdd);
-//  }
-// 
+front = measure(frontTrigPin,frontEchoPin);
+frontRight = measure(frontRightTrigPin, frontRightEchoPin); 
+
+  if(front<=30){
+    Serial.println("STOP");
+    sendCan(2,motoAdd);
+  }
+ 
   Serial.print("LEFT : ");
   Serial.print(analogRead(leftIRPin));
   Serial.print(" || RIGHT : ");
@@ -176,13 +176,13 @@ void loop() {
   //Serial.println(front);
   //Serial.println(frontRight);
 
-  if(analogRead(leftIRPin) > threshValue){
+  if(analogRead(leftIRPin) < threshValue){
     leftIR = 1;
   } else {
     leftIR = 0;
   }
   
-  if(analogRead(rightIRPin) > threshValue){
+  if(analogRead(rightIRPin) < threshValue){
     rightIR = 1;
   } else {
     rightIR = 0;
@@ -191,7 +191,7 @@ void loop() {
     crossLine = 1;
   }
   
-  if(count==25){
+  if(count==50){
     sendData();
     count=0;
   }
