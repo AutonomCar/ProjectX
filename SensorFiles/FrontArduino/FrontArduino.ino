@@ -169,10 +169,10 @@ void loop() {
     sendCan(2, motoAdd);
   }
 
-  Serial.print("LEFT : ");
-  Serial.print(analogRead(leftIRPin));
-  Serial.print(" || RIGHT : ");
-  Serial.println(analogRead(rightIRPin));
+//  Serial.print("LEFT : ");
+//  Serial.print(analogRead(leftIRPin));
+//  Serial.print(" || RIGHT : ");
+//  Serial.println(analogRead(rightIRPin));
   //Serial.println(front);
   //Serial.println(frontRight);
 
@@ -191,7 +191,7 @@ void loop() {
     crossLine = 1;
   }
 
-  if (count == 50) {
+  if (count == 75) {
     sendData();
     count = 0;
   }

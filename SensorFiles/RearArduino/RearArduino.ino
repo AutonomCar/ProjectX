@@ -63,7 +63,7 @@ void loop() {
   frontSide = measure(frontSideTrigPin,frontSideEchoPin);
   
   count++;
-  if(count==50){
+  if(count==75){
     sendData();
     count=0;
   }
