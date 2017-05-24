@@ -45,8 +45,8 @@ int front;
 int frontRight;
 //*******************************************************************
 //************************INITIATE IR SENSOR*************************
-const int leftIRPin = 0;
-const int rightIRPin = 1;
+const int leftIRPin = 1;
+const int rightIRPin = 0;
 int leftIR;
 int rightIR;
 int crossLine = 0;
@@ -142,12 +142,13 @@ void setup(){
   pinMode(rightIRPin, INPUT);
 //*******************************************************************
 // Wait until RPI sends message on CAN-bus
-  while(wait==true){
-    if(!digitalRead(CAN0_INT)){
-      wait==false;
-      break;
-    }
-  }
+// This is to ensure that the RPi is ready to receive data
+//  while(wait==true){
+//    if(!digitalRead(CAN0_INT)){
+//      wait==false;
+//      break;
+//    }
+//  }
 }
 //***************************MAIN PROGRAM****************************
 void loop() { 
@@ -160,15 +161,18 @@ void loop() {
   }
 */
   //Testing sending data between every sensor read to speed up updating to RPi
-front = measure(frontTrigPin,frontEchoPin);
-frontRight = measure(frontRightTrigPin, frontRightEchoPin); 
-
-  if(front<=30){
-    Serial.println("STOP");
-    sendCan(2,motoAdd);
-  }
-  //Serial.println(analogRead(leftIRPin));
-  //Serial.println(analogRead(rightIRPin));
+//front = measure(frontTrigPin,frontEchoPin);
+//frontRight = measure(frontRightTrigPin, frontRightEchoPin); 
+//
+//  if(front<=30){
+//    Serial.println("STOP");
+//    sendCan(2,motoAdd);
+//  }
+// 
+  Serial.print("LEFT : ");
+  Serial.print(analogRead(leftIRPin));
+  Serial.print(" || RIGHT : ");
+  Serial.println(analogRead(rightIRPin));
   //Serial.println(front);
   //Serial.println(frontRight);
 
@@ -187,13 +191,13 @@ frontRight = measure(frontRightTrigPin, frontRightEchoPin);
     crossLine = 1;
   }
   
-  count++;
   if(count==25){
     sendData();
     count=0;
   }
-  
-/* ******* MAYBE SOLVABLE******************
+  count++;
+
+/* ******* MAYBE SOLVABLE ******************
   timeKeeper = (millis() - timeKeeper);
   speedV[0]=(myIMU.ax*9.81);
   speedV[1]=(myIMU.ay*9.81);
