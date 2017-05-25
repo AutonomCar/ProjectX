@@ -50,7 +50,8 @@ const int rightIRPin = 0;
 int leftIR;
 int rightIR;
 int crossLine = 0;
-const int threshValue = 100;
+const int threshValL = 620;
+const int threshValR = 600;
 //*******************************************************************
 //***************************SETUP***********************************
 void setup() {
@@ -176,13 +177,13 @@ void loop() {
   //Serial.println(front);
   //Serial.println(frontRight);
 
-  if (analogRead(leftIRPin) < threshValue) {
+  if (analogRead(leftIRPin) < threshValL) {
     leftIR = 1;
   } else {
     leftIR = 0;
   }
 
-  if (analogRead(rightIRPin) < threshValue) {
+  if (analogRead(rightIRPin) < threshValR) {
     rightIR = 1;
   } else {
     rightIR = 0;
