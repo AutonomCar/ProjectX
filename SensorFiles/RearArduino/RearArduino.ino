@@ -61,7 +61,7 @@ void loop() {
 
   backSide = measure(backSideTrigPin,backSideEchoPin);
   frontSide = measure(frontSideTrigPin,frontSideEchoPin);
-  
+  delayMicroseconds(60000);
   count++;
   if(count==75){
     sendData();
