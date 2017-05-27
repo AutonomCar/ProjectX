@@ -50,6 +50,8 @@ const int rightIRPin = 0;
 int leftIR;
 int rightIR;
 int crossLine = 0;
+
+// Threshold values needs to be set according to sensor values on the course
 const int threshValL = 620;
 const int threshValR = 600;
 //*******************************************************************
@@ -161,6 +163,10 @@ void loop() {
       updateData();
     }
   */
+  while (count != 25) {
+    count++;
+  }
+
   //Testing sending data between every sensor read to speed up updating to RPi
   front = measure(frontTrigPin, frontEchoPin);
   frontRight = measure(frontRightTrigPin, frontRightEchoPin);
@@ -170,12 +176,14 @@ void loop() {
     sendCan(2, motoAdd);
   }
 
-//  Serial.print("LEFT : ");
-//  Serial.print(analogRead(leftIRPin));
-//  Serial.print(" || RIGHT : ");
-//  Serial.println(analogRead(rightIRPin));
-  //Serial.println(front);
-  //Serial.println(frontRight);
+  Serial.print("LEFT : ");
+  Serial.print(analogRead(leftIRPin));
+  Serial.print(" || RIGHT : ");
+  Serial.println(analogRead(rightIRPin));
+  Serial.print("FRONT U : ");
+  Serial.print(front);
+  Serial.print(" || FRONT RIGHT U : ");
+  Serial.println(frontRight);
 
   if (analogRead(leftIRPin) < threshValL) {
     leftIR = 1;
@@ -191,12 +199,12 @@ void loop() {
   if (leftIR == 1 && rightIR == 1) {
     crossLine = 1;
   }
-
-  if (count == 75) {
-    sendData();
-    count = 0;
-  }
-  count++;
+  sendData();
+  //  if (count == 25) {
+  //    sendData();
+  //    count = 0;
+  //  }
+  //  count++;
 
   /* ******* MAYBE SOLVABLE ******************
     timeKeeper = (millis() - timeKeeper);
@@ -228,8 +236,10 @@ void sendData() {
 }
 void sendCan(int value, byte adress) {
   byte data[sizeMsg] = {0, 0, 0};
-
-  //Serial.println(value);
+  Serial.print(" CAN adress : ");
+  Serial.print(adress);
+  Serial.print(" ; Value : ");
+  Serial.println(value);
   //Simplifying having to use signed logic
   if (value < 0) {
     value = value * -1;

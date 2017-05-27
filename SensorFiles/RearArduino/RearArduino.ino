@@ -58,16 +58,13 @@ void setup() {
 }
 //***************************MAIN PROGRAM*************************
 void loop() {
-
+  
+  while (count != 25) {
+    count++;
+  }
   backSide = measure(backSideTrigPin,backSideEchoPin);
   frontSide = measure(frontSideTrigPin,frontSideEchoPin);
-  delayMicroseconds(60000);
-  count++;
-  if(count==75){
-    sendData();
-    count=0;
-  }
-
+  sendData();
 }
 //*****************CAN FUNCTIONS*********************************
 void sendData(){
