@@ -163,10 +163,7 @@ void loop() {
       updateData();
     }
   */
-  while (count != 25) {
-    count++;
-  }
-
+  delay(140);
   //Testing sending data between every sensor read to speed up updating to RPi
   front = measure(frontTrigPin, frontEchoPin);
   frontRight = measure(frontRightTrigPin, frontRightEchoPin);
