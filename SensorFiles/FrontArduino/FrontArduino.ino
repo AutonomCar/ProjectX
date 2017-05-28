@@ -52,8 +52,8 @@ int rightIR;
 int crossLine = 0;
 
 // Threshold values needs to be set according to sensor values on the course
-const int threshValL = 620;
-const int threshValR = 600;
+const int threshValL = 200;
+const int threshValR = 615;
 //*******************************************************************
 //***************************SETUP***********************************
 void setup() {
@@ -177,10 +177,10 @@ void loop() {
   Serial.print(analogRead(leftIRPin));
   Serial.print(" || RIGHT : ");
   Serial.println(analogRead(rightIRPin));
-  Serial.print("FRONT U : ");
-  Serial.print(front);
-  Serial.print(" || FRONT RIGHT U : ");
-  Serial.println(frontRight);
+//  Serial.print("FRONT U : ");
+//  Serial.print(front);
+//  Serial.print(" || FRONT RIGHT U : ");
+//  Serial.println(frontRight);
 
   if (analogRead(leftIRPin) < threshValL) {
     leftIR = 1;
@@ -233,10 +233,10 @@ void sendData() {
 }
 void sendCan(int value, byte adress) {
   byte data[sizeMsg] = {0, 0, 0};
-  Serial.print(" CAN adress : ");
-  Serial.print(adress);
-  Serial.print(" ; Value : ");
-  Serial.println(value);
+//  Serial.print(" CAN adress : ");
+//  Serial.print(adress);
+//  Serial.print(" ; Value : ");
+//  Serial.println(value);
   //Simplifying having to use signed logic
   if (value < 0) {
     value = value * -1;
