@@ -52,8 +52,8 @@ int rightIR;
 int crossLine = 0;
 
 // Threshold values needs to be set according to sensor values on the course
-const int threshValL = 200;
-const int threshValR = 615;
+const int threshValL = 600;
+const int threshValR = 420;
 //*******************************************************************
 //***************************SETUP***********************************
 void setup() {
@@ -163,20 +163,20 @@ void loop() {
       updateData();
     }
   */
-  delay(140);
+  delay(60);
   //Testing sending data between every sensor read to speed up updating to RPi
   front = measure(frontTrigPin, frontEchoPin);
   frontRight = measure(frontRightTrigPin, frontRightEchoPin);
 
   if (front <= 30) {
-    Serial.println("STOP");
+    //Serial.println("STOP");
     sendCan(2, motoAdd);
   }
 
-  Serial.print("LEFT : ");
-  Serial.print(analogRead(leftIRPin));
-  Serial.print(" || RIGHT : ");
-  Serial.println(analogRead(rightIRPin));
+//  Serial.print("LEFT : ");
+//  Serial.print(analogRead(leftIRPin));
+//  Serial.print(" || RIGHT : ");
+//  Serial.println(analogRead(rightIRPin));
 //  Serial.print("FRONT U : ");
 //  Serial.print(front);
 //  Serial.print(" || FRONT RIGHT U : ");
@@ -184,12 +184,14 @@ void loop() {
 
   if (analogRead(leftIRPin) < threshValL) {
     leftIR = 1;
+    Serial.println("LEFT FOUND");
   } else {
     leftIR = 0;
   }
 
   if (analogRead(rightIRPin) < threshValR) {
     rightIR = 1;
+    Serial.println("RIGHT FOUND");
   } else {
     rightIR = 0;
   }
@@ -219,15 +221,15 @@ void loop() {
 //*******************************************************************
 //*********************CAN FUNCTIONS*********************************
 void sendData() {
-
+  Serial.println("SENT");
   sendCan(front, frontUltAd);
   //Serial.println(front);
   sendCan(frontRight, frontRUltAd);
   //Serial.println(frontRight);
   sendCan(leftIR, leftIRAd);
-  //Serial.println(leftIR);
+//  Serial.println(leftIR);
   sendCan(rightIR, rightIRAd);
-  //Serial.println(rightIR);
+//  Serial.println(rightIR);
   sendCan(crossLine, crossLineAd);
   crossLine = 0;
 }
