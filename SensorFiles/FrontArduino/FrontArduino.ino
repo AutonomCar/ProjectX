@@ -1,14 +1,11 @@
-boolean wait = true;
-int count = 0;
+boolean wait = false;  // Used to wait on RPi until it's ready
 //*************************INITIATE CAN******************************
-int speedV[] = {0, 0};
-float timeKeeper = millis();
 #include <mcp_can.h>
 #include <SPI.h>
 
 long unsigned int rxId;
 unsigned char len = 0;
-unsigned char rxBuf[8];
+//unsigned char rxBuf[8];                   //Not Needed unless debugging CAN Receive
 const int sizeMsg = 3;                      // Sets the ammount of bytes sent on the CAN
 
 //Defining adresses for CAN bus that RPi will listen for
@@ -45,15 +42,15 @@ int front;
 int frontRight;
 //*******************************************************************
 //************************INITIATE IR SENSOR*************************
-const int leftIRPin = 1;
-const int rightIRPin = 0;
+const int leftIRPin = 0;
+const int rightIRPin = 1;
 int leftIR;
 int rightIR;
 int crossLine = 0;
 
 // Threshold values needs to be set according to sensor values on the course
-const int threshValL = 600;
-const int threshValR = 420;
+const int threshValL = 450;
+const int threshValR = 100;
 //*******************************************************************
 //***************************SETUP***********************************
 void setup() {
@@ -163,8 +160,8 @@ void loop() {
       updateData();
     }
   */
+  //Delay to ensure RPi buffer dosn't get full
   delay(60);
-  //Testing sending data between every sensor read to speed up updating to RPi
   front = measure(frontTrigPin, frontEchoPin);
   frontRight = measure(frontRightTrigPin, frontRightEchoPin);
 
@@ -184,14 +181,15 @@ void loop() {
 
   if (analogRead(leftIRPin) < threshValL) {
     leftIR = 1;
-    Serial.println("LEFT FOUND");
+    Serial.print("LEFT FOUND : ");
+    Serial.println(analogRead(leftIRPin));
   } else {
     leftIR = 0;
   }
-
   if (analogRead(rightIRPin) < threshValR) {
     rightIR = 1;
-    Serial.println("RIGHT FOUND");
+    Serial.print("RIGHT FOUND : ");
+    Serial.println(analogRead(rightIRPin));
   } else {
     rightIR = 0;
   }
@@ -199,29 +197,11 @@ void loop() {
     crossLine = 1;
   }
   sendData();
-  //  if (count == 25) {
-  //    sendData();
-  //    count = 0;
-  //  }
-  //  count++;
-
-  /* ******* MAYBE SOLVABLE ******************
-    timeKeeper = (millis() - timeKeeper);
-    speedV[0]=(myIMU.ax*9.81);
-    speedV[1]=(myIMU.ay*9.81);
-    Serial.print("Speed X-Axis : ");
-    Serial.println(speedV[0]*timeKeeper);
-    Serial.print("Speed Y-Axis : ");
-    Serial.println(speedV[1]*timeKeeper);
-    Serial.println((int)myIMU.gz*(timeKeeper));
-    delay(100);
-
-  */
 }
 //*******************************************************************
 //*********************CAN FUNCTIONS*********************************
 void sendData() {
-  Serial.println("SENT");
+  //Serial.println("SENT");
   sendCan(front, frontUltAd);
   //Serial.println(front);
   sendCan(frontRight, frontRUltAd);
@@ -267,7 +247,7 @@ void sendCan(int value, byte adress) {
   //    Serial.println("Error Sending Message...");
   //  }
 }
-//***************** TO DO, MAYBE MOVE FUNCTION AND CALL sendCan()*****************
+/*
 void readCan () {
 
   CAN0.readMsgBuf(&rxId, &len, rxBuf);      // Read data: len = data length, buf = data byte(s)
@@ -290,6 +270,7 @@ void readCan () {
   //    }
   //Serial.println();
 }
+*/
 //*******************************************************************
 /*
   //****************************MPU 9250 FUNCTIONS*********************
