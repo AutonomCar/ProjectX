@@ -1,12 +1,11 @@
-int count = 0;
 boolean wait = true;
 //*************************INITIATE CAN****************************
 #include <mcp_can.h>
 #include <SPI.h>
 
-long unsigned int rxId;
-unsigned char len = 0;
-unsigned char rxBuf[8];
+//long unsigned int rxId;       //Id on recieved message
+//unsigned char len = 0;
+//unsigned char rxBuf[8];       //Size of recieved message and it's content
 const int sizeMsg = 3;        // Sets the ammount of bytes sent on the CAN
 
 //Defining adresses for CAN bus that RPi will listen for
@@ -61,14 +60,14 @@ void loop() {
   delay(60);
   backSide = measure(backSideTrigPin, backSideEchoPin);
   frontSide = measure(frontSideTrigPin, frontSideEchoPin);
-  Serial.print("BACK SIDE SENSOR : ");
-  Serial.print(backSide);
-  Serial.print(" ; ADDRESS : ");
-  Serial.println(backSideAd);
-  Serial.print("FRONT SIDE SENSOR : ");
-  Serial.print(frontSide);
-  Serial.print(" ; ADDRESS : ");
-  Serial.println(frontSideAd);
+//  Serial.print("BACK SIDE SENSOR : ");
+//  Serial.print(backSide);
+//  Serial.print(" ; ADDRESS : ");
+//  Serial.println(backSideAd);
+//  Serial.print("FRONT SIDE SENSOR : ");
+//  Serial.print(frontSide);
+//  Serial.print(" ; ADDRESS : ");
+//  Serial.println(frontSideAd);
   sendData();
 }
 //*****************CAN FUNCTIONS*********************************

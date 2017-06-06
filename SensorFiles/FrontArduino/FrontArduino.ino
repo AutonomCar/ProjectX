@@ -1,11 +1,11 @@
-boolean wait = false;  // Used to wait on RPi until it's ready
+boolean wait = true;  // Used to wait on RPi until it's ready
 //*************************INITIATE CAN******************************
 #include <mcp_can.h>
 #include <SPI.h>
 
-long unsigned int rxId;
-unsigned char len = 0;
-//unsigned char rxBuf[8];                   //Not Needed unless debugging CAN Receive
+//long unsigned int rxId;       //Id on recieved message
+//unsigned char len = 0;
+//unsigned char rxBuf[8];       //Size of recieved message and it's Receive
 const int sizeMsg = 3;                      // Sets the ammount of bytes sent on the CAN
 
 //Defining adresses for CAN bus that RPi will listen for
@@ -49,7 +49,7 @@ int rightIR;
 int crossLine = 0;
 
 // Threshold values needs to be set according to sensor values on the course
-const int threshValL = 450;
+const int threshValL = 620;
 const int threshValR = 100;
 //*******************************************************************
 //***************************SETUP***********************************
@@ -164,12 +164,12 @@ void loop() {
   delay(60);
   front = measure(frontTrigPin, frontEchoPin);
   frontRight = measure(frontRightTrigPin, frontRightEchoPin);
-
+/*
   if (front <= 30) {
     //Serial.println("STOP");
     sendCan(2, motoAdd);
   }
-
+*/
 //  Serial.print("LEFT : ");
 //  Serial.print(analogRead(leftIRPin));
 //  Serial.print(" || RIGHT : ");
@@ -178,18 +178,19 @@ void loop() {
 //  Serial.print(front);
 //  Serial.print(" || FRONT RIGHT U : ");
 //  Serial.println(frontRight);
-
+    //Serial.println(analogRead(rightIRPin));
+    //Serial.println(analogRead(leftIRPin));    
   if (analogRead(leftIRPin) < threshValL) {
     leftIR = 1;
-    Serial.print("LEFT FOUND : ");
-    Serial.println(analogRead(leftIRPin));
+    //Serial.println("LEFT FOUND : ");
+    //Serial.println(analogRead(leftIRPin));
   } else {
     leftIR = 0;
   }
   if (analogRead(rightIRPin) < threshValR) {
     rightIR = 1;
-    Serial.print("RIGHT FOUND : ");
-    Serial.println(analogRead(rightIRPin));
+    //Serial.println("RIGHT FOUND : ");
+    //Serial.println(analogRead(rightIRPin));
   } else {
     rightIR = 0;
   }
