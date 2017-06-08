@@ -12,7 +12,7 @@ Autonoma Elbilar
 #include <opencv2/highgui/highgui.hpp>
 #include "autodrive.hpp"
 //#include "lastNextObj.hpp"
-#include "navigation.hpp"
+//#include "navigation.hpp"
 
 #include <stdio.h>      // standard input / output functions
 #include <stdlib.h>
@@ -50,6 +50,10 @@ int lastNewAngle;
 using namespace cv;
 using namespace std;
 
+// Depends on car(steering controls). Black car = 89, 55, 120. White car: 100, 85, 125
+extern int straight_wheels;
+extern int max_right_angle;
+extern int max_left_angle;
 
 
 /*Change the angle from between (-1) and 1 to 70-120
@@ -63,20 +67,20 @@ int convAngle(double angle) {
 	if (angle == 0) { // För att styra rakt
 
 
-		if(lastNewAngle > 99) // Om det senaste styrvärdet var över 89
+		if(lastNewAngle > (straight_wheels+10) ) // Om det senaste styrvärdet var över 89
 		{
-			newAngle = 120;
+			newAngle = max_left_angle;
 			lastNewAngle = newAngle; // uppdatera lastNewAngle
 			return newAngle;
 		}
-		else if (lastNewAngle < 79) // Om det senaste styrvärdet var under 89
+		else if (lastNewAngle < (straight_wheels-10) ) // Om det senaste styrvärdet var under 89
 		{
-			newAngle = 55;
+			newAngle = max_right_angle;
 			lastNewAngle = newAngle; // uppdatera lastNewAngle
 			return newAngle;
 		}
 		else{
-            newAngle = 89;
+            newAngle = straight_wheels;
 			lastNewAngle = newAngle; // uppdatera lastNewAngle
 			return newAngle;
 
@@ -86,26 +90,26 @@ int convAngle(double angle) {
 	{
 		if ((angle <-0.8)) //Om svängen är skarp
 		{
-			newAngle = 120;
+			newAngle = max_left_angle;
 			lastNewAngle = newAngle;
 			return newAngle;
 		}
 		else
 		{//Vanligt
-			newAngle = (89 - (31.0 * angle));
+			newAngle = (straight_wheels - (31.0 * angle));
 		}
 	}
 	else if ((1.01 > angle) && (angle > 0))//för sväng åt höger
 	{
 		if (angle > 0.8)
 		{ //Om svängen är skarp
-			newAngle = 55;
+			newAngle = max_right_angle;
 			lastNewAngle = newAngle;
 			return newAngle;
 		}
 		else
 		{ //Vanligt
-			newAngle = (89 - (34 * angle));
+			newAngle = (straight_wheels - (34 * angle));
 		}
 	}
 	//cout << "newAngle: " << newAngle << endl;

@@ -1,111 +1,115 @@
 /*
 
+Autonoma Elbilar
+
+Main file.
+
+
+
 Arvid Englund
+2017-06-04
 
-Halmstad
-2017-05-20
 
-project: Autonoma Elbilar
-
-** open source **
 
 */
 
 
-
+// files
 #include "Can-bus.hpp"  // communication by CAN-bus
 #include "camera.hpp"   // camera functions
-//#include "navigation.hpp" // navigation functions
-//#include "bluetooth.hpp" // inter-car communication
+#include "navigation.hpp" // navigation functions
+#include "bluetooth.hpp" // inter-car communication
+#include "Tests.hpp"	// Test functions
 
+
+// utility
 #include <string.h>     // string library
 #include <iostream>     // in/out functions (usleep)
 #include <stdio.h>      // standard input / output functions
 #include <stdlib.h>     //
 #include <unistd.h>     // UNIX standard function definitions
 
-//using namespace cv;
+using namespace cv;
 using namespace std;
 
-int mode;                   // The cars current situation and response
-int STANDARD = 1;           // standard mode (change depending on demonstration scenario: FOLLOW_ROAD, FOLLOW_CAR, FREE_MODE)
-int FOLLOW_ROAD = 1;	    // Follow road using the camera
-int FOLLOW_CAR = 2;			// Follow the other car
-int CROSSING = 3;	        // Handle a intersection
-int AVOID = 4;		        // Avoid obstacle
-int IDLE = 5;               // Wait for input
-int FREE_MODE = 6;		    // Drive without road, avoid obstacles
+
+int STANDARD = 1; // Standard mode
+int FOLLOW_ROAD = 1; // Follow road using the camera
+int FOLLOW_CAR = 2; // Follow the other car
+int CROSSING = 3; // Handle an intersection
+int AVOID = 4; // Avoid obstacle
+int IDLE = 5; // Start Mode, Wait for input (wave a hand in front of sensor)
+int FREE_MODE = 6; // Drive without road, avoid obstacles
 int STOP = 7;
-int shortsleep = 00000;    // sleep ONLY USE SLEEP FOR TESTING
 
-int standard_speed = 50;
-int slow_speed = 40;
+int mode = STANDARD; // The cars current situation and response
 
-int counter = 10;           // Purpose: slow down the amount of file reading while car is using camera, a simple counter to lagging performance
+ int shortsleep = 1000000;    // sleep
+ int longsleep =  4000000;
 
-int test = 1;
+ int standard_speed = 70;
+ int slow_speed = 40;
 
-int fmuClose = 100; // Set obstacle sensitivity
-int fruClose = 30;
+ int counter = 10; // Purpose: slow down the amount of file reading while car is using camera, a simple counter to lagging performance
+                  // used in "followRoad()"
 
-int straight_wheels = 110;
-int max_right_angle = 80;
-int max_left_angle = 130;
+ int fmuClose = 10; // Set obstacle sensitivity for front-middle sensor
+ int fmu_emer = 20; // Set obstacle sensitivity for front-middle sensor (emergency brake)
 
 
-/*
-navigation navObj = navigation(1,5); // updated via navigation.hpp
+// Depends on car(steering controls). Black car = 89, 55, 120. White car: 100, 85, 125
+ int straight_wheels = 100;
+ int max_right_angle = 85;
+ int max_left_angle = 125;
 
-car other_car = car(0,'a',9); // updated via bluetooth in carcommunicaion.hpp
+
+
+
+navigation navObj = navigation(5,1); // updated via navigation.hpp
+
+
+car other_car = car(0,'a',9); // updated via bluetooth.hpp
 car my_car = car(0,'a',9); // Update before start.
-*/
+
+
+void emerstop(){ // Emergency stop
+	
+	if(fmu<fmu_emer){
+		sendCAN(0, 's');
+		cout << "Emergency stop" << endl;
+	}
+
+	while(fmu<fmu_emer){
+		fetchInput();
+	}
+}
 
 int updateMode(){
 
-//    cout << "--- update mode" << endl;
-
-    fetchInput(); // update sensor data
-
-
     if( (fmu<fmuClose)&&(mode!=FOLLOW_CAR) ){ // check for obstacles
-        if(fmu<30){
-            cout << "STOP" << endl;
-            return STOP;
-        }
-
-        else{
         cout << "AVOID" << endl;
         return AVOID;
-        }
     }
 
-	int a = lir() + rir();
 
-    if( (a == 2)&& (mode != CROSSING) ){ // check for crossing
+    if( (lirPassed==1)&&(rirPassed==1) ){ // check for crossing
         cout << "CROSSING" << endl;
-        //navObj = driving(navObj); // update navigation data // FIX
-        sendCAN(slow_speed, 'f');
         return CROSSING;
 
     }
-    else if( (a == 2) && (mode == CROSSING) ){
-            cout << "leaving intersection.." << endl;
-    }
+
 
     cout << "STANDARD" << endl;
     return STANDARD; // if no other issues, set to standard mode
 
 }
 
-void updateMode(int m){ // Force specific mode (for debugging purposes)
+void updateMode(int m){ // set specific mode
 	mode = m;
 }
 
 
 void followRoad(){
-
-  //  cout << "--- followRoad" << endl;
-   // usleep(shortsleep); // wait 0.5 sec. // TESTING
 
     sendCAN(standard_speed, 'f');
 
@@ -117,179 +121,234 @@ void followRoad(){
 
 
 void followCar(){
-    cout << "--- followCar" << endl;
-
-
     if(fmu<90){
         sendCAN( (standard_speed-10), 'f');
     }
     else if(fmu>110){
         sendCAN( (standard_speed+10), 'f');
     }
-
     else if(fmu<50){
         sendCAN( 00, 's');
     }
-
     else{
         sendCAN(standard_speed, 'f');
     }
-
-
-
-
 }
-// manuveure
-void turn(){
-    cout << "--- turn" << endl;
-    /*int dir = decision(navObj);
+
+
+void turn(){ // DIFFERENT FROM BLACK CAR
+
+    int dir = decision2(navObj);
+	if(dir == 0){dir = 1;} // TEST
 
     switch(dir){
+	    case 1:
+	        //turn right
+	        cout << "right turn" << endl;
+	        sendCAN(max_right_angle, 'a');
+		usleep(7200000); // let the car turn
+	        break;
 
-    case 1:
-        //turn left
-        cout << "left turn" << endl;
-        break;
+	    case 2:
+	        //turn left
+	        cout << "left turn" << endl;
+	        sendCAN(max_left_angle, 'a');
+		usleep(6800000);
+	        break;
 
-    case 2:
-        //turn right
-        cout << "right turn" << endl;
-        break;
+        	case 4:
+	        //double right turn
+	        cout << "double right turn" << endl;
+	        sendCAN(max_right_angle, 'a');
+		usleep(14300000);
+	        break;
 
-    case 0:
-        // go straight
-        cout << "going straight" << endl;
-        break;
+	    case 0:
+	        // go straight
+	        cout << "going straight" << endl;
+	        sendCAN(standard_speed, 'f');
+		usleep(4000000);
+	        break;
 
-    default:
-        cout << "error turn!" << endl;
-        break;
-
+	    default:
+	        cout << "error turn!" << endl;
+	        break;
     }
 
-    */// TODO find the exact values to turn well. test it out.
 
 }
 
-void crossing(){ // simple version
-    cout << "--- crossing" << endl;
-	sendCAN(00, 's');
-	while(1){	}
-  /*  cout << "nav last: " << navObj.last << "nav next: " << navObj.next << endl;
-    // get. info from other car....
+void crossing(){
+    navObj = driving2(navObj); // update navigation data
+    // update my info
+    my_car.isCrossing = 1;
+    my_car.position = getCPos();
+    my_car.nextPos = navObj.next;
 
+    sendBT(my_car); // update other car's information of me
+    other_car = getBT(other_car); // update my information about other car
 
-    if(other_car.isCrossing == 1){
-        if(other_car.position == currentPos){
+    if(other_car.isCrossing == 1){ // check if the other car is in an intersection
+        if(other_car.position == my_car.position){  // check if other car is in the same intersection
             sendCAN(00, 's');
-            while(other_car.isCrossing == 1) {}
+            while(other_car.isCrossing == 1) {  // stop until other car leaves intersection
+                other_car = getBT(other_car);
+            }
+            sendCAN(standard_speed, 'f');
         }
-        turn();
-    }
-    else{
-        turn();
     }
 
-cout << currentPos << endl;
-usleep(3000000); // TESTING
-*/
+    turn(); // perform the turn
+
+    my_car.isCrossing = 0; // set crossing to false
+    //sendBT(my_car); // update other car's information of me
 
 }
+
+
 
 int avoid(){ // avoiding obstacle on road
 	cout << "--- avoid" << endl;
-	sendCAN(00, 's');
-	sendCAN(slow_speed, 'f'); // set slower speed for this.
+	int x = 0;
 
-
+/*
+// Simple version (Hardcoded)
     sendCAN(max_left_angle, 'a'); // turn left
     cout << "turning left" << endl;
-    while(lir() != 1){ // until left sensors passes first line
+    usleep(4000000);
+
+    while(fru<70){
         fetchInput();
-        //usleep(shortsleep); // TESTING
-        //cout << "while rir!=1" << endl;
+	emerstop();
+        for(int i = 0; i<counter; i++){
+            processingCamera();
+        }
+        cout << "1 while" << endl;
     }
 
-    fetchInput();
+    while(sfu>65){
+        fetchInput();
+	emerstop();
+        for(int i = 0; i<counter; i++){
+            processingCamera();
+        }
+        cout << "2 while" << endl;
+    }
 
-    // TEST!
+	while(sfu<70){
+        fetchInput();
+	emerstop();
+        for(int i = 0; i<counter; i++){
+            processingCamera();
+        }
+        cout << "3 while" << endl;---
+
+    }
+
+    while(sbu<70){
+        fetchInput();
+	emerstop();
+        for(int i = 0; i<counter; i++){
+            processingCamera();
+        }
+        cout << "4 while" << endl;
+    }
+
+
+    sendCAN(max_right_angle, 'a'); // turn left
+    cout << "turning right" << endl;
+    usleep(4500000);
+
+
+*/
+
+// Complex version
+    sendCAN(max_left_angle, 'a'); // turn left
+    cout << "turning left" << endl;
+    usleep(shortsleep); // to make sure it is not detecting the line of the current road
+
+    while(lirPassed != 1){ // continue until left sensor passes first line
+        fetchInput();
+	emerstop();
+    }
+    cout << "left IR found!" << endl;
+
     cout << "straighten" << endl;
-    sendCAN(max_right_angle, 'a');
-    usleep(shortsleep);
+    sendCAN( (max_right_angle) , 'a');
 
-    fetchInput();
 
-    cout << "first IR found" << endl;
-    while(lir() != 1){ // until left sensors passes second line
+    // follow the road until the obstacle has been passed:
+    cout << "follow road";
+    while( sbu>40 ){
         fetchInput();
-        //usleep(shortsleep); // TESTING
-        //cout << "while rir!=1" << endl;
-    }
-    cout << "second IR found" << endl;
-
-    // Straighten out
-    cout << "straighten" << endl;
-    sendCAN(max_right_angle, 'a');
-    usleep(shortsleep);
-
-
-    while(sfu<50){
-        fetchInput();
-        processingCamera();
+	emerstop();
+        for(int i = 0; i<counter; i++){
+            processingCamera();
+        }
     }
 
-    while(sbu<50){
+    while(sbu<40){
         fetchInput();
-        processingCamera();
+	emerstop();
+        for(int i = 0; i<counter; i++){
+            processingCamera();
+        }
     }
-
+    cout << "-- DONE" << endl;
 
     // return to original lane
-    sendCAN(55, 'a'); // turn right
+    sendCAN(max_right_angle, 'a'); // turn right
     cout << "turn right" << endl;
-    while(rir() != 1){ // until right sensors passes first line
-        fetchInput();
-        //usleep(shortsleep); // TESTING
-        //cout << "while rir!=1" << endl;
-    }
-    fetchInput();
-    while(rir() != 1){ // until right sensors passes second line
-        fetchInput();
-        //usleep(shortsleep); // TESTING
-        //cout << "while rir!=1" << endl;
-    }
 
-    sendCAN(120, 'a'); // turn left
+    while(lirPassed != 1){ // continue until right sensor passes first line
+        fetchInput();
+	  emerstop();
+    }
+    cout << "IR found!" << endl;
 
+     fetchInput();
+	emerstop();
+
+    sendCAN(max_left_angle, 'a'); // turn left to straighten out again
+    usleep(shortsleep);
+
+    cout << "avoid -- done" << endl;
 
     return 1;
 }
 
 
-void idle(){
-    cout << "--- idling" << endl;
-sendCAN(00,'s');
+void idle(){ // starting mode.
+
+    cout << "waiting for go signal" << endl;
+    sendCAN(00,'s');
+
     while(fmu>10){ // wait until fmu detects a "go signal"
         fetchInput();
     }
-    updateMode();
+
+	cout << "---" << endl;
+    while(fmu<10){ // wait until fmu detects a "go signal"
+        fetchInput();
+    }
+    cout << "==GO==" << endl;
 
 }
 
 
-int freeMode(){
-    cout << "--- justDrive" << endl;
-
+int freeMode(){ // just a simple roomba-esque driving feature (not used)
 
 	sendCAN(standard_speed, 'f');
 
-	if(50<fmu<100){
+	if(fmu<100){
 		sendCAN(55, 'a'); // Turn Right to avoid obstacle
-
-        while( (fmu<50) || (fru<30) ){ // if too close, reverse
+        if( (fmu<50) || (fru<30) ){ // if too close
+            sendCAN(00, 's'); // stop
+            usleep(shortsleep); // wait
             sendCAN(89, 'a'); // set steering forward
             sendCAN(slow_speed, 'b'); // reverse
-            updateMode();
+            while( (fmu<50) || (fru<30) ){} // while too close, reverse
+            sendCAN(00, 's'); // stop
         }
     }
 
@@ -306,68 +365,65 @@ int freeMode(){
 
 
 void run(){
-    //cout << endl;
-   // cout << "*run*" << endl;
+
     switch(mode){
 		case 1:
-            followRoad();
-		break;
+            		followRoad();
+			break;
 
 		case 2:
 			followCar();
-		break;
+			break;
 
 		case 3:
 			crossing();
-		break;
+			break;
 
 		case 4:
 			avoid();
-		break;
+			break;
 
 		case 5:
 			idle();
-		break;
+			break;
 
 		case 6:
 			freeMode();
-		break;
+			break;
 
 		case 7:
-            sendCAN(00,'s'); // STOP
+            		sendCAN(00,'s'); // STOP
+			break;
 
 		default:
 			mode = STANDARD;
 	}
 
-	mode = updateMode();
-	//cout << mode << endl;
+	fetchInput(); // update sensor data
+	emerstop();
+	mode = updateMode(); // update the mode
+
 }
 
 int main(){
+
+    // Startup sequence
     cout << "--- START                  ***"<<endl;
     startCAN();
     cout << "--- CAN started            ***" << endl;
     initCamera();
     findLanes();
-    //initNav(navObj, 1, 5); // Change depending on start posittion.(se img: Intersection)
-    system("cansend can0 200#0000"); // initiate fetch data //TESTING
+    initNav(navObj, 2, 1); // Update depending on start position
+    system("cansend can0 200#0000"); // initiate fetch data
     cout << "--- First, send for data   ***" << endl;
-
-
-    updateMode(STANDARD); // set starting mode
-
-    //sendCAN(standard_speed, 'f');
-
-
-    cout << "--- STARTUP IS DONE: LOOP  ***" << endl;
-
+    cout << "--- STARTUP IS DONE...IDLE ***" << endl;
     usleep(shortsleep); // wait 0.5 sec.
 
-    while(1){
-      run();
-	//cout << "Ir: " << lirPassed << rirPassed << irPassed << endl;
+	updateMode(5);// wait for start signal (wave a hand in front of front-middle sensor)
+	while(1){
+		run();
+		//testIR();
+	}
 
-    }
 return 1;
 }

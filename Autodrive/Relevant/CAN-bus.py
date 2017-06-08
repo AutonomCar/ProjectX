@@ -33,7 +33,7 @@ while(1):
     for msg in bus: #while and if msg in socket
         dt = msg.data   # get data in msg
         if msg.arbitration_id < 110 : # check if adressed to the rpi
-            print("data! ")
+            #print("data! ")
             #print(count)
             count = count +1
             x = x +1
@@ -45,8 +45,8 @@ while(1):
                 arr = arr + str(dt[index])
                 arr = arr + "-"
        
-            if x >= 7: #number of sensors to Catch! 
-                file = open("sensors", "w")
+            if x >= 4: #number of sensors to Catch! 
+                file = open("/home/pi/Autodrive/testingAutodrive/sensors", "w")
                 arr = arr + "q "
                 print(arr)
                 file.write(arr) # write to file

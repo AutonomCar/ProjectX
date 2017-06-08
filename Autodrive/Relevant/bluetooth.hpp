@@ -39,7 +39,7 @@ car getBT(car otherCar){
 
     char file_data[10];
     fstream read_file;
-    read_file.open("/home/pi/Autodrive/AutodriveFilesArvids/TESTS/TEST3_Bluetooth/reciveBT", ios::in|ios::out); // open file
+    read_file.open("("/home/pi/Autodrive/testingAutodrive/reciveBT", ios::in|ios::out); // open file
 
     if(!read_file.is_open()){
 		cout << "File not opened..." << endl;
@@ -69,7 +69,7 @@ int sendBT(car myCar){
 
     char file_data[10];
     fstream write_file;
-    write_file.open("/home/pi/Autodrive/AutodriveFilesArvids/TESTS/TEST3_Bluetooth/sendBT", ios::in|ios::out); // open file
+    write_file.open("("/home/pi/Autodrive/testingAutodrive/sendBT", ios::in|ios::out); // open file
 
     if(!write_file.is_open()){
 		cout << "File not opened..." << endl;

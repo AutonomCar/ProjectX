@@ -12,6 +12,8 @@ Autonoma Elbilar
 
 char currentPos = 'x';
 
+
+
 class navigation {//navigation object
 public:
 	int last;
@@ -25,6 +27,7 @@ public:
 	}
 
 };
+
 
 void initNav(navigation obj, int x, int y){
     obj.last = x;
@@ -49,6 +52,13 @@ int setNext(int b) {
 		return next;
 }
 */
+
+
+char getCPos(){
+    return currentPos;
+}
+
+
 
 /*Left turn*/
 void turnLeft() {
@@ -264,6 +274,79 @@ navigation driving(navigation car) {
 	/*}*/
 }
 
+navigation driving2(navigation carNav) { // Second Map
+
+
+	navigation *carPtr;
+	carPtr = &carNav;
+	int *last;
+	int *next;
+	last = &carPtr->last;
+	next = &carPtr->next;
+	int r = 0;
+
+	*last = *next;
+
+	if (*last == 1) { //The road the car is comming from
+        *next = 2; //The road the car will drive too
+        currentPos = 'a';
+        return *carPtr;
+	}//End of last=1
+
+	else if (*last == 2) {
+        *next = 3; //The road the car will drive too
+        currentPos = 'b';
+        return *carPtr;
+	}//end of last = 2
+
+	else if (*last == 3) {
+		r = randomize(1, 2);
+		if (r == 1) {
+			*next = 1; //The road the car will drive too
+			currentPos = 'c';
+			return *carPtr;
+		}
+		else if (r == 2) {
+			*next = 4; //The road the car will drive too
+			currentPos = 'c';
+			return *carPtr;
+		}
+	}//End of last = 3
+
+	else if (*last == 4) {
+        *next = 5; //The road the car will drive too
+        currentPos = 'd';
+		return *carPtr;
+	}//End of last = 4
+
+	else if (*last == 5) {
+		r = randomize(1, 2);
+		if (r == 1) {
+			*next = 2; //The road the car will drive too
+			currentPos = 'a';
+			return *carPtr;
+		}
+		else if (r == 2) {
+			*next = 6; //The road the car will drive too
+			currentPos = 'a';
+			return *carPtr;
+		}
+	}//End of last = 5
+
+
+	else if (*last == 6) {
+	        *next = 4; //The road the car will drive too
+        	currentPos = 'c';
+		return *carPtr;
+	}//End of last = 6
+
+	else {
+        currentPos = 'x';
+		return *carPtr;
+	}
+	/*}*/
+}
+
 int decision(navigation navObj) {
 
 	navigation *carPtr;
@@ -310,6 +393,39 @@ int decision(navigation navObj) {
 		return 0;
 	}
 
+
+}
+
+int decision2(navigation navObj) {
+
+	navigation *carPtr;
+	carPtr = &navObj;
+	int *last;
+	int *next;
+	last = &carPtr->last;
+	next = &carPtr->next;
+
+	/*Alla vilkor för vanlig högersväng*/
+	if ( (*last == 1 && *next == 2) ||
+	     (*last == 3 && *next == 1)||
+	     (*last == 5 && *next == 6)||
+	     (*last == 6 && *next == 4) )
+	{
+		return 1;
+	}
+	/*Alla vilkor för dubbel högersväng*/
+	else if ( (*last == 2 && *next == 3) ||
+		  (*last == 4 && *next == 5) )
+	{
+		return 4;
+	}
+
+	/*Alla vilkor för vanlig köra rakt*/
+	if ( (*last == 5 && *next == 2) ||
+	     (*last == 3 && *next == 4) )
+	{
+		return 0;
+	}
 
 }
 
