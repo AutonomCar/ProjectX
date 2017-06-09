@@ -42,19 +42,20 @@ int front;
 int frontRight;
 //*******************************************************************
 //************************INITIATE IR SENSOR*************************
-const int leftIRPin = 0;
-const int rightIRPin = 1;
+const int leftIRPin = 1;
+const int rightIRPin = 0;
 int leftIR;
 int rightIR;
 int crossLine = 0;
 
 // Threshold values needs to be set according to sensor values on the course
-const int threshValL = 620;
-const int threshValR = 100;
+int threshValL;
+int threshValR;
 //*******************************************************************
 //***************************SETUP***********************************
 void setup() {
   Serial.begin(115200);
+  setThreshV();
   /*
     //************************SETUP MPU9250******************************
     Wire.begin();
@@ -163,7 +164,7 @@ void loop() {
   //Delay to ensure RPi buffer dosn't get full
   delay(60);
   front = measure(frontTrigPin, frontEchoPin);
-  frontRight = measure(frontRightTrigPin, frontRightEchoPin);
+  //frontRight = measure(frontRightTrigPin, frontRightEchoPin);
 /*
   if (front <= 30) {
     //Serial.println("STOP");
@@ -175,27 +176,27 @@ void loop() {
 //  Serial.print(" || RIGHT : ");
 //  Serial.println(analogRead(rightIRPin));
 //  Serial.print("FRONT U : ");
-//  Serial.print(front);
+//  Serial.println(front);
 //  Serial.print(" || FRONT RIGHT U : ");
 //  Serial.println(frontRight);
     //Serial.println(analogRead(rightIRPin));
     //Serial.println(analogRead(leftIRPin));    
   if (analogRead(leftIRPin) < threshValL) {
     leftIR = 1;
-    //Serial.println("LEFT FOUND : ");
+    Serial.println("LEFT FOUND : ");
     //Serial.println(analogRead(leftIRPin));
   } else {
     leftIR = 0;
   }
   if (analogRead(rightIRPin) < threshValR) {
     rightIR = 1;
-    //Serial.println("RIGHT FOUND : ");
+    Serial.println("RIGHT FOUND : ");
     //Serial.println(analogRead(rightIRPin));
   } else {
     rightIR = 0;
   }
   if (leftIR == 1 && rightIR == 1) {
-    crossLine = 1;
+    Serial.println("Both IR Found");
   }
   sendData();
 }
@@ -211,8 +212,7 @@ void sendData() {
 //  Serial.println(leftIR);
   sendCan(rightIR, rightIRAd);
 //  Serial.println(rightIR);
-  sendCan(crossLine, crossLineAd);
-  crossLine = 0;
+  //sendCan(crossLine, crossLineAd);
 }
 void sendCan(int value, byte adress) {
   byte data[sizeMsg] = {0, 0, 0};
@@ -349,4 +349,22 @@ int microsecondsToCentimeters(int microseconds) {
   return (microseconds / 29 / 2);
 }
 //*******************************************************************
+void setThreshV(){
+  double temp1=0;
+  double temp2=0;
+  double tempTh=1000;
+  double tempTh1=1000;
+  for(int i = 0; i<200; i++){
+    temp1 = analogRead(leftIRPin);
+    temp2 = analogRead(rightIRPin);
+    if(temp1<tempTh){
+      tempTh = temp1;
+    }
+    if(temp2<tempTh1){
+      tempTh1 = temp2;
+    }
+    threshValL = (int) tempTh*0.90;
+    threshValR = (int) tempTh1*0.90;
+  }
+}
 

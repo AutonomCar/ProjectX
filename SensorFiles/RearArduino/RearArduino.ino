@@ -1,4 +1,4 @@
-boolean wait = true;
+boolean wait = false;
 //*************************INITIATE CAN****************************
 #include <mcp_can.h>
 #include <SPI.h>
@@ -59,7 +59,7 @@ void setup() {
 void loop() {
   delay(60);
   backSide = measure(backSideTrigPin, backSideEchoPin);
-  frontSide = measure(frontSideTrigPin, frontSideEchoPin);
+  //frontSide = measure(frontSideTrigPin, frontSideEchoPin);
 //  Serial.print("BACK SIDE SENSOR : ");
 //  Serial.print(backSide);
 //  Serial.print(" ; ADDRESS : ");
@@ -68,19 +68,20 @@ void loop() {
 //  Serial.print(frontSide);
 //  Serial.print(" ; ADDRESS : ");
 //  Serial.println(frontSideAd);
+  Serial.println(backSide);
   sendData();
 }
 //*****************CAN FUNCTIONS*********************************
 void sendData() {
   sendCan(backSide, backSideAd);
-  sendCan(frontSide, frontSideAd);
+  //sendCan(frontSide, frontSideAd);
 }
 void sendCan(int value, byte adress) {
-  byte data[sizeMsg];
+  byte data[sizeMsg] = {0,0,0};
 
   //Simplifying having to use signed logic
   if (value < 0) {
-    value = value * -1;
+    //value = value * -1;
     data[sizeMsg - 1] = -1;
   }
   //Masks first bits of the integer and saves it in the byte array
@@ -90,6 +91,7 @@ void sendCan(int value, byte adress) {
     data[i] = (byte) (value & 0xFF);
     value = value >> 8;
   }
+  Serial.println(data[2]);
   // send data:  ID = 0x100, Standard CAN Frame, Data length = 8 bytes, 'data' = array of data bytes to send
   byte sndStat = CAN0.sendMsgBuf(adress, 0, sizeMsg, data);
 
