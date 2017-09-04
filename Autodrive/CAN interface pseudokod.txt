@@ -1,0 +1,32 @@
+Pseudo Code - Command to CAN
+
+//Make a thread that continually checks command.
+
+namespace Autodrive{
+while(1)
+{
+Read();
+}
+
+Read(){
+	if (cmd.changedAngle)
+		Send(1, cmd.angle)
+	if(cmd.changedSpeed)
+		Send(2, cmd.speed)
+
+	Clear()
+}
+
+Send(int a, double b){
+	if(a == 1)
+		send b to steering
+	if(a == 2)
+		send b to drive
+}
+
+
+Clear(){
+cmd.changedAngle = false;
+cmd.changedSpeed = false;
+}
+}
